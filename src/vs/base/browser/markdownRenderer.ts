@@ -48,7 +48,12 @@ export interface SanitizerConfig {
  * **Note** that for most cases you should be using [`MarkdownRenderer`](./src/vs/editor/browser/core/markdownRenderer.ts)
  * which comes with support for pretty code block rendering and which uses the default way of handling links.
  */
-export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRenderOptions = {}, markedOptions: MarkedOptions = {}, sanitizerConfig: SanitizerConfig = {}): { element: HTMLElement, dispose: () => void } {
+export function renderMarkdown(
+	markdown: IMarkdownString,
+	options: MarkdownRenderOptions = {},
+	markedOptions: MarkedOptions = {},
+	sanitizerConfig: SanitizerConfig = {}
+): { element: HTMLElement, dispose: () => void } {
 	const disposables = new DisposableStore();
 	let isDisposed = false;
 
@@ -320,7 +325,7 @@ function sanitizeRenderedMarkdown(
 	});
 
 	try {
-		return dompurify.sanitize(renderedMarkdown, {...config, RETURN_TRUSTED_TYPE: true});
+		return dompurify.sanitize(renderedMarkdown, { ...config, RETURN_TRUSTED_TYPE: true });
 	} finally {
 		dompurify.removeHook('uponSanitizeAttribute');
 		dompurify.removeHook('afterSanitizeAttributes');
@@ -447,7 +452,7 @@ export function renderMarkdownAsPlaintext(markdown: IMarkdownString) {
 		['&gt;', '>'],
 	]);
 
-	const html = marked.parse(value, {renderer}).replace(/&(#\d+|[a-zA-Z]+);/g, m => unescapeInfo.get(m) ?? m);
+	const html = marked.parse(value, { renderer }).replace(/&(#\d+|[a-zA-Z]+);/g, m => unescapeInfo.get(m) ?? m);
 
-	return sanitizeRenderedMarkdown({isTrusted: false}, html).toString();
+	return sanitizeRenderedMarkdown({ isTrusted: false }, html).toString();
 }
