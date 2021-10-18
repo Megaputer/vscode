@@ -6,6 +6,7 @@
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { KeyChord, KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
+import { SanitizerConfig } from 'vs/base/browser/markdownRenderer';
 import { ICodeEditor, IEditorMouseEvent, MouseTargetType } from 'vs/editor/browser/editorBrowser';
 import { EditorAction, registerEditorAction, registerEditorContribution, ServicesAccessor } from 'vs/editor/browser/editorExtensions';
 import { ConfigurationChangedEvent, EditorOption } from 'vs/editor/common/config/editorOptions';
@@ -48,10 +49,10 @@ export class ModesHoverController implements IEditorContribution {
 	}
 
 	constructor(private readonly _editor: ICodeEditor,
-		@IInstantiationService private readonly _instantiationService: IInstantiationService,
-		@IOpenerService private readonly _openerService: IOpenerService,
-		@IModeService private readonly _modeService: IModeService,
-		@IContextKeyService _contextKeyService: IContextKeyService
+			@IInstantiationService private readonly _instantiationService: IInstantiationService,
+			@IOpenerService private readonly _openerService: IOpenerService,
+			@IModeService private readonly _modeService: IModeService,
+			@IContextKeyService _contextKeyService: IContextKeyService
 	) {
 		this._isMouseDown = false;
 		this._hoverClicked = false;
@@ -225,6 +226,10 @@ export class ModesHoverController implements IEditorContribution {
 		this._didChangeConfigurationHandler.dispose();
 		this._glyphWidget?.dispose();
 		this._contentWidget?.dispose();
+	}
+
+	public setMarkdownSanitizerConfig(config: SanitizerConfig) {
+		this._getOrCreateContentWidget().setMarkdownSanitizerConfig(config);
 	}
 }
 
