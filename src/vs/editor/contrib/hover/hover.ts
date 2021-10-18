@@ -49,10 +49,10 @@ export class ModesHoverController implements IEditorContribution {
 	}
 
 	constructor(private readonly _editor: ICodeEditor,
-			@IInstantiationService private readonly _instantiationService: IInstantiationService,
-			@IOpenerService private readonly _openerService: IOpenerService,
-			@IModeService private readonly _modeService: IModeService,
-			@IContextKeyService _contextKeyService: IContextKeyService
+				@IInstantiationService private readonly _instantiationService: IInstantiationService,
+				@IOpenerService private readonly _openerService: IOpenerService,
+				@IModeService private readonly _modeService: IModeService,
+				@IContextKeyService _contextKeyService: IContextKeyService
 	) {
 		this._isMouseDown = false;
 		this._hoverClicked = false;
