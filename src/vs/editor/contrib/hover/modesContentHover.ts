@@ -7,6 +7,7 @@ import * as dom from 'vs/base/browser/dom';
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { HoverAction, HoverWidget } from 'vs/base/browser/ui/hover/hoverWidget';
 import { Widget } from 'vs/base/browser/ui/widget';
+import { SanitizerConfig } from 'vs/base/browser/markdownRenderer';
 import { coalesce, flatten } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { KeyCode } from 'vs/base/common/keyCodes';
@@ -199,6 +200,7 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 	private _shouldFocus: boolean;
 	private _colorPicker: ColorPickerWidget | null;
 	private _renderDisposable: IDisposable | null;
+	private _markdownHoverParticipant: MarkdownHoverParticipant;
 
 	constructor(
 		editor: ICodeEditor,
@@ -210,7 +212,7 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 		this._participants = [
 			instantiationService.createInstance(ColorHoverParticipant, editor, this),
-			instantiationService.createInstance(MarkdownHoverParticipant, editor, this),
+			this._markdownHoverParticipant = instantiationService.createInstance(MarkdownHoverParticipant, editor, this),
 			instantiationService.createInstance(InlineCompletionsHoverParticipant, editor, this),
 			instantiationService.createInstance(MarkerHoverParticipant, editor, this),
 		];
@@ -492,6 +494,10 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
+	}
+
+	public setMarkdownSanitizerConfig(config: SanitizerConfig) {
+		this._markdownHoverParticipant.setMarkdownSanitizerConfig(config);
 	}
 
 	private _withResult(result: IHoverPart[], complete: boolean): void {

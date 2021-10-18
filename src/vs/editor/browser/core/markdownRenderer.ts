@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IMarkdownString } from 'vs/base/common/htmlContent';
-import { renderMarkdown, MarkdownRenderOptions, MarkedOptions } from 'vs/base/browser/markdownRenderer';
+import {renderMarkdown, MarkdownRenderOptions, MarkedOptions, SanitizerConfig} from 'vs/base/browser/markdownRenderer';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IModeService } from 'vs/editor/common/services/modeService';
 import { onUnexpectedError } from 'vs/base/common/errors';
@@ -51,14 +51,19 @@ export class MarkdownRenderer {
 		this._onDidRenderAsync.dispose();
 	}
 
-	render(markdown: IMarkdownString | undefined, options?: MarkdownRenderOptions, markedOptions?: MarkedOptions): IMarkdownRenderResult {
+	render(markdown: IMarkdownString | undefined, options?: MarkdownRenderOptions, markedOptions?: MarkedOptions, sanitizerConfig?: SanitizerConfig): IMarkdownRenderResult {
 		if (!markdown) {
 			const element = document.createElement('span');
 			return { element, dispose: () => { } };
 		}
 
 		const disposables = new DisposableStore();
-		const rendered = disposables.add(renderMarkdown(markdown, { ...this._getRenderOptions(markdown, disposables), ...options }, markedOptions));
+		const rendered = disposables.add(renderMarkdown(
+			markdown,
+			{ ...this._getRenderOptions(markdown, disposables), ...options },
+			markedOptions,
+			sanitizerConfig
+		));
 		return {
 			element: rendered.element,
 			dispose: () => disposables.dispose()
