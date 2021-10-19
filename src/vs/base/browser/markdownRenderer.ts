@@ -7,7 +7,7 @@ import * as DOM from 'vs/base/browser/dom';
 import * as dompurify from 'vs/base/browser/dompurify/dompurify';
 import { DomEmitter } from 'vs/base/browser/event';
 import { createElement, FormattedTextRenderOptions } from 'vs/base/browser/formattedTextRenderer';
-import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
+import { IMouseEvent, StandardMouseEvent } from 'vs/base/browser/mouseEvent';
 import { renderLabelWithIcons } from 'vs/base/browser/ui/iconLabel/iconLabels';
 import { raceCancellation } from 'vs/base/common/async';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
@@ -29,17 +29,20 @@ export interface MarkedOptions extends marked.MarkedOptions {
 	baseUrl?: never;
 }
 
-export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
-	codeBlockRenderer?: (modeId: string, value: string) => Promise<HTMLElement>;
-	asyncRenderCallback?: () => void;
-	baseUrl?: URI;
-}
-
 type ConfigModifier = (original: string[]) => string[];
 
 export interface SanitizerConfig {
 	allowedTagsModifier?: ConfigModifier;
 	allowedAttributesModifier?: ConfigModifier;
+}
+
+export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
+	codeBlockRenderer?: (modeId: string, value: string) => Promise<HTMLElement>;
+	headingBlockRenderer?: (text: string, level: number, raw: string) => string
+	asyncRenderCallback?: () => void;
+	baseUrl?: URI;
+	sanitizerConfig?: SanitizerConfig;
+	onClickHandler?: (content: string, event?: IMouseEvent) => boolean;
 }
 
 /**
@@ -51,8 +54,7 @@ export interface SanitizerConfig {
 export function renderMarkdown(
 	markdown: IMarkdownString,
 	options: MarkdownRenderOptions = {},
-	markedOptions: MarkedOptions = {},
-	sanitizerConfig: SanitizerConfig = {}
+	markedOptions: MarkedOptions = {}
 ): { element: HTMLElement, dispose: () => void } {
 	const disposables = new DisposableStore();
 	let isDisposed = false;
@@ -201,6 +203,10 @@ export function renderMarkdown(
 		};
 	}
 
+	if (options.headingBlockRenderer) {
+		renderer.heading = options.headingBlockRenderer;
+	}
+
 	if (options.actionHandler) {
 		const onClick = options.actionHandler.disposables.add(new DomEmitter(element, 'click'));
 		const onAuxClick = options.actionHandler.disposables.add(new DomEmitter(element, 'auxclick'));
@@ -210,14 +216,19 @@ export function renderMarkdown(
 				return;
 			}
 
-			let target: HTMLElement | null = mouseEvent.target;
-			if (target.tagName !== 'A') {
-				target = target.parentElement;
-				if (!target || target.tagName !== 'A') {
+			try {
+				if (options.onClickHandler?.('', mouseEvent)) {
 					return;
 				}
-			}
-			try {
+
+				let target: HTMLElement | null = mouseEvent.target;
+				if (target.tagName !== 'A') {
+					target = target.parentElement;
+					if (!target || target.tagName !== 'A') {
+						return;
+					}
+				}
+
 				const href = target.dataset['href'];
 				if (href) {
 					options.actionHandler!.callback(href, mouseEvent);
@@ -260,7 +271,7 @@ export function renderMarkdown(
 
 	const renderedMarkdown = marked.parse(value, markedOptions);
 	element.innerHTML = sanitizeRenderedMarkdown(
-		{ ...markdown, ...sanitizerConfig },
+		{ ...markdown, ...options.sanitizerConfig },
 		renderedMarkdown
 	) as unknown as string;
 

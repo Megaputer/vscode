@@ -8,7 +8,7 @@ import { asArray } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { IMarkdownString, isEmptyMarkdownString, MarkdownString } from 'vs/base/common/htmlContent';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
-import { SanitizerConfig } from 'vs/base/browser/markdownRenderer';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { MarkdownRenderer } from 'vs/editor/browser/core/markdownRenderer';
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
 import { Position } from 'vs/editor/common/core/position';
@@ -42,7 +42,7 @@ export class MarkdownHover implements IHoverPart {
 }
 
 export class MarkdownHoverParticipant implements IEditorHoverParticipant<MarkdownHover> {
-	private _markdownSanitizerConfig?: SanitizerConfig;
+	private _markdownRendererOptions?: MarkdownRenderOptions;
 
 	constructor(
 		private readonly _editor: ICodeEditor,
@@ -116,8 +116,8 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 		return result;
 	}
 
-	public setMarkdownSanitizerConfig(config: SanitizerConfig) {
-		this._markdownSanitizerConfig = config;
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownRendererOptions = options;
 	}
 
 	public renderHoverParts(hoverParts: MarkdownHover[], fragment: DocumentFragment, statusBar: IEditorHoverStatusBar): IDisposable {
@@ -134,12 +134,7 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 					hoverContentsElement.className = 'hover-contents code-hover-contents';
 					this._hover.onContentsChanged();
 				}));
-				const renderedContents = disposables.add(renderer.render(
-					contents,
-					undefined,
-					undefined,
-					this._markdownSanitizerConfig
-				));
+				const renderedContents = disposables.add(renderer.render(contents, this._markdownRendererOptions));
 				hoverContentsElement.appendChild(renderedContents.element);
 				fragment.appendChild(markdownHoverElement);
 			}

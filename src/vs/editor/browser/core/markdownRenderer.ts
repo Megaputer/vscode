@@ -7,8 +7,7 @@ import { IMarkdownString } from 'vs/base/common/htmlContent';
 import {
 	renderMarkdown,
 	MarkdownRenderOptions,
-	MarkedOptions,
-	SanitizerConfig
+	MarkedOptions
 } from 'vs/base/browser/markdownRenderer';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IModeService } from 'vs/editor/common/services/modeService';
@@ -56,7 +55,7 @@ export class MarkdownRenderer {
 		this._onDidRenderAsync.dispose();
 	}
 
-	render(markdown: IMarkdownString | undefined, options?: MarkdownRenderOptions, markedOptions?: MarkedOptions, sanitizerConfig?: SanitizerConfig): IMarkdownRenderResult {
+	render(markdown: IMarkdownString | undefined, options?: MarkdownRenderOptions, markedOptions?: MarkedOptions): IMarkdownRenderResult {
 		if (!markdown) {
 			const element = document.createElement('span');
 			return { element, dispose: () => { } };
@@ -66,8 +65,7 @@ export class MarkdownRenderer {
 		const rendered = disposables.add(renderMarkdown(
 			markdown,
 			{ ...this._getRenderOptions(markdown, disposables), ...options },
-			markedOptions,
-			sanitizerConfig
+			markedOptions
 		));
 		return {
 			element: rendered.element,

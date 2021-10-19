@@ -7,7 +7,7 @@ import * as dom from 'vs/base/browser/dom';
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { HoverAction, HoverWidget } from 'vs/base/browser/ui/hover/hoverWidget';
 import { Widget } from 'vs/base/browser/ui/widget';
-import { SanitizerConfig } from 'vs/base/browser/markdownRenderer';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { coalesce, flatten } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { Emitter, Event } from 'vs/base/common/event';
@@ -503,8 +503,8 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 		this._onDidContentsChanged.fire();
 	}
 
-	public setMarkdownSanitizerConfig(config: SanitizerConfig) {
-		this._markdownHoverParticipant.setMarkdownSanitizerConfig(config);
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownHoverParticipant.setMarkdownRendererOptions(options);
 	}
 
 	private _withResult(result: IHoverPart[], complete: boolean): void {
