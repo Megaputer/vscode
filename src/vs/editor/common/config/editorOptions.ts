@@ -1767,6 +1767,11 @@ export interface IEditorHoverOptions {
 	 * Defaults to true.
 	 */
 	sticky?: boolean;
+	/**
+	 * Max width of the hover widget.
+	 * Defaults to 500.
+	 */
+	maxWidth?: number;
 }
 
 export type EditorHoverOptions = Readonly<Required<IEditorHoverOptions>>;
@@ -1777,7 +1782,8 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 		const defaults: EditorHoverOptions = {
 			enabled: true,
 			delay: 300,
-			sticky: true
+			sticky: true,
+			maxWidth: 500
 		};
 		super(
 			EditorOption.hover, 'hover', defaults,
@@ -1797,6 +1803,11 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 					default: defaults.sticky,
 					description: nls.localize('hover.sticky', "Controls whether the hover should remain visible when mouse is moved over it.")
 				},
+				'editor.hover.maxWidth': {
+					type: 'number',
+					default: defaults.maxWidth,
+					description: nls.localize('hover.maxWidth', "Controls the hover widget max width.")
+				},
 			}
 		);
 	}
@@ -1809,7 +1820,8 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 		return {
 			enabled: boolean(input.enabled, this.defaultValue.enabled),
 			delay: EditorIntOption.clampedInt(input.delay, this.defaultValue.delay, 0, 10000),
-			sticky: boolean(input.sticky, this.defaultValue.sticky)
+			sticky: boolean(input.sticky, this.defaultValue.sticky),
+			maxWidth: EditorIntOption.clampedInt(input.maxWidth, this.defaultValue.maxWidth, 0, 1000)
 		};
 	}
 }
