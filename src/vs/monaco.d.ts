@@ -3504,6 +3504,11 @@ declare namespace monaco.editor {
 		 * Defaults to true.
 		 */
 		sticky?: boolean;
+		/**
+		 * Max width of the hover widget.
+		 * Defaults to 500.
+		 */
+		maxWidth?: number;
 	}
 
 	export type EditorHoverOptions = Readonly<Required<IEditorHoverOptions>>;

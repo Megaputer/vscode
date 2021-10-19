@@ -10,6 +10,7 @@ import { Widget } from 'vs/base/browser/ui/widget';
 import { SanitizerConfig } from 'vs/base/browser/markdownRenderer';
 import { coalesce, flatten } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
+import { Emitter, Event } from 'vs/base/common/event';
 import { KeyCode } from 'vs/base/common/keyCodes';
 import { Disposable, DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
 import { Constants } from 'vs/base/common/uint';
@@ -202,6 +203,10 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 	private _renderDisposable: IDisposable | null;
 	private _markdownHoverParticipant: MarkdownHoverParticipant;
 
+	protected readonly _onDidContentsChanged: Emitter<void> = this._register(new Emitter<void>());
+	public readonly onDidContentsChanged: Event<void> = this._onDidContentsChanged.event;
+
+
 	constructor(
 		editor: ICodeEditor,
 		private readonly _hoverVisibleKey: IContextKey<boolean>,
@@ -389,16 +394,18 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 		this._editor.layoutContentWidget(this);
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire();
 	}
 
 	private layout(): void {
 		const height = Math.max(this._editor.getLayoutInfo().height / 4, 250);
 		const { fontSize, lineHeight } = this._editor.getOption(EditorOption.fontInfo);
+		const maxWidth = this._editor.getOption(EditorOption.hover).maxWidth ?? 500;
 
 		this._hover.contentsDomNode.style.fontSize = `${fontSize}px`;
 		this._hover.contentsDomNode.style.lineHeight = `${lineHeight}px`;
 		this._hover.contentsDomNode.style.maxHeight = `${height}px`;
-		this._hover.contentsDomNode.style.maxWidth = `${Math.max(this._editor.getLayoutInfo().width * 0.66, 500)}px`;
+		this._hover.contentsDomNode.style.maxWidth = `${Math.max(this._editor.getLayoutInfo().width * 0.66, maxWidth)}px`;
 	}
 
 	public onModelDecorationsChanged(): void {
@@ -494,6 +501,7 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire();
 	}
 
 	public setMarkdownSanitizerConfig(config: SanitizerConfig) {
