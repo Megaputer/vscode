@@ -512,7 +512,7 @@ export interface CompletionItem {
 	 * The kind of this completion item. Based on the kind
 	 * an icon is chosen by the editor.
 	 */
-	kind: CompletionItemKind;
+	kind: CompletionItemKind | number;
 	/**
 	 * A modifier to the `kind` which affect how the item
 	 * is rendered, e.g. Deprecated is rendered with a strikeout

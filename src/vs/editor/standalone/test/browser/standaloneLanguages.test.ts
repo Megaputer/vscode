@@ -13,7 +13,12 @@ import { ILineTokens, IToken, TokenizationSupport2Adapter, TokensProvider } from
 import { IStandaloneTheme, IStandaloneThemeData, IStandaloneThemeService } from 'vs/editor/standalone/common/standaloneThemeService';
 import { ColorIdentifier } from 'vs/platform/theme/common/colorRegistry';
 import { ColorScheme } from 'vs/platform/theme/common/theme';
-import { IFileIconTheme, IColorTheme, ITokenStyle } from 'vs/platform/theme/common/themeService';
+import {
+	IFileIconTheme,
+	IColorTheme,
+	ITokenStyle,
+	IExtendedCompletionItemKindTheme
+} from 'vs/platform/theme/common/themeService';
 
 suite('TokenizationSupport2Adapter', () => {
 
@@ -82,6 +87,13 @@ suite('TokenizationSupport2Adapter', () => {
 		}
 		public readonly onDidColorThemeChange = new Emitter<IColorTheme>().event;
 		public readonly onDidFileIconThemeChange = new Emitter<IFileIconTheme>().event;
+
+		getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined {
+			return undefined;
+		}
+
+		registerExtendedCompletionItemKinds(items: Map<number, string>){
+		}
 	}
 
 	class MockState implements IState {

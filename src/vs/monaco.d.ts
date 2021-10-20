@@ -973,6 +973,11 @@ declare namespace monaco.editor {
 	export function defineTheme(themeName: string, themeData: IStandaloneThemeData): void;
 
 	/**
+	 * Define a new completion item kinds.
+	 */
+	export function defineExtendedCompletionItemKinds(completionItemKinds: Map<number, string>): void;
+
+	/**
 	 * Switches to a theme.
 	 */
 	export function setTheme(themeName: string): void;
@@ -5836,7 +5841,7 @@ declare namespace monaco.languages {
 		 * The kind of this completion item. Based on the kind
 		 * an icon is chosen by the editor.
 		 */
-		kind: CompletionItemKind;
+		kind: CompletionItemKind | number;
 		/**
 		 * A modifier to the `kind` which affect how the item
 		 * is rendered, e.g. Deprecated is rendered with a strikeout

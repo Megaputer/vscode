@@ -6,7 +6,13 @@
 import { Color } from 'vs/base/common/color';
 import { Emitter, Event } from 'vs/base/common/event';
 import { ColorScheme } from 'vs/platform/theme/common/theme';
-import { IColorTheme, IFileIconTheme, IThemeService, ITokenStyle } from 'vs/platform/theme/common/themeService';
+import {
+	IExtendedCompletionItemKindTheme,
+	IColorTheme,
+	IFileIconTheme,
+	IThemeService,
+	ITokenStyle
+} from 'vs/platform/theme/common/themeService';
 
 export class TestColorTheme implements IColorTheme {
 
@@ -81,5 +87,9 @@ export class TestThemeService implements IThemeService {
 
 	public get onDidFileIconThemeChange(): Event<IFileIconTheme> {
 		return this._onFileIconThemeChange.event;
+	}
+
+	getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined {
+		return undefined;
 	}
 }
