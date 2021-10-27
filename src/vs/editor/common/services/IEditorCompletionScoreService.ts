@@ -25,5 +25,4 @@ export class EditorCompletionScoreServiceImpl implements IEditorCompletionScoreS
 	getScorer(): FuzzyScorer | undefined {
 		return this.scorer;
 	}
-
 }
