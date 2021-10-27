@@ -303,21 +303,6 @@ function sanitizeRenderedMarkdown(
 	renderedMarkdown: string,
 ): TrustedHTML {
 	const { config, allowedSchemes } = getSanitizerOptions(options);
-	dompurify.addHook('uponSanitizeAttribute', (element, e) => {
-		if (e.attrName === 'style' || e.attrName === 'class') {
-			if (element.tagName === 'SPAN') {
-				if (e.attrName === 'style') {
-					e.keepAttr = /^(color\:#[0-9a-fA-F]+;)?(background-color\:#[0-9a-fA-F]+;)?$/.test(e.attrValue);
-					return;
-				} else if (e.attrName === 'class') {
-					e.keepAttr = /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/.test(e.attrValue);
-					return;
-				}
-			}
-			e.keepAttr = false;
-			return;
-		}
-	});
 
 	// build an anchor to map URLs to
 	const anchor = document.createElement('a');
@@ -338,7 +323,6 @@ function sanitizeRenderedMarkdown(
 	try {
 		return dompurify.sanitize(renderedMarkdown, { ...config, RETURN_TRUSTED_TYPE: true });
 	} finally {
-		dompurify.removeHook('uponSanitizeAttribute');
 		dompurify.removeHook('afterSanitizeAttributes');
 	}
 }
