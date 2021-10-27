@@ -42,6 +42,7 @@ import { IEditorProgressService } from 'vs/platform/progress/common/progress';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
 import { StandaloneThemeServiceImpl } from 'vs/editor/standalone/browser/standaloneThemeServiceImpl';
 import { splitLines } from 'vs/base/common/strings';
+import { FuzzyScorer } from "vs/base/common/filters";
 import { IModelService } from 'vs/editor/common/services/modelService';
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -340,6 +341,13 @@ export function registerCommand(id: string, handler: (accessor: any, ...args: an
 }
 
 /**
+ * Register a custom completion score method.
+ */
+export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
+	StaticServices.completionScoreService.get().registerCompletionScoreMethod(scorer);
+}
+
+/**
  * @internal
  */
 export function createMonacoEditorAPI(): typeof monaco.editor {
@@ -372,6 +380,7 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		setTheme: <any>setTheme,
 		remeasureFonts: remeasureFonts,
 		registerCommand: registerCommand,
+		registerCompletionScoreMethod: registerCompletionScoreMethod,
 
 		// enums
 		AccessibilitySupport: standaloneEnums.AccessibilitySupport,
