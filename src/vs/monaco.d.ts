@@ -448,6 +448,16 @@ declare namespace monaco {
 		stopPropagation(): void;
 	}
 
+	export interface IMouseWheelEvent extends MouseEvent {
+		readonly wheelDelta: number;
+		readonly wheelDeltaX: number;
+		readonly wheelDeltaY: number;
+		readonly deltaX: number;
+		readonly deltaY: number;
+		readonly deltaZ: number;
+		readonly deltaMode: number;
+	}
+
 	export interface IScrollEvent {
 		readonly scrollTop: number;
 		readonly scrollLeft: number;
@@ -2032,6 +2042,24 @@ declare namespace monaco.editor {
 		 */
 		setEOL(eol: EndOfLineSequence): void;
 		/**
+		 * Undo edit operations until the previous undo/redo point.
+		 * The inverse edit operations will be pushed on the redo stack.
+		 */
+		undo(): void | Promise<void>;
+		/**
+		 * Is there anything in the undo stack?
+		 */
+		canUndo(): boolean;
+		/**
+		 * Redo edit operations until the next undo/redo point.
+		 * The inverse edit operations will be pushed on the undo stack.
+		 */
+		redo(): void | Promise<void>;
+		/**
+		 * Is there anything in the redo stack?
+		 */
+		canRedo(): boolean;
+		/**
 		 * An event emitted when the contents of the model have changed.
 		 * @event
 		 */
@@ -2056,6 +2084,11 @@ declare namespace monaco.editor {
 		 * @event
 		 */
 		onDidChangeLanguageConfiguration(listener: (e: IModelLanguageConfigurationChangedEvent) => void): IDisposable;
+		/**
+		 * An event emitted when the tokens associated with the model have changed.
+		 * @event
+		 */
+		onDidChangeTokens(listener: (e: IModelTokensChangedEvent) => void): IDisposable;
 		/**
 		 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 		 * @event
@@ -2571,6 +2604,24 @@ declare namespace monaco.editor {
 	export interface IModelDecorationsChangedEvent {
 		readonly affectsMinimap: boolean;
 		readonly affectsOverviewRuler: boolean;
+	}
+
+	/**
+	 * An event describing that some ranges of lines have been tokenized (their tokens have changed).
+	 */
+	export interface IModelTokensChangedEvent {
+		readonly tokenizationSupportChanged: boolean;
+		readonly semanticTokensApplied: boolean;
+		readonly ranges: {
+			/**
+			 * The start of the range (inclusive)
+			 */
+			readonly fromLineNumber: number;
+			/**
+			 * The end of the range (inclusive)
+			 */
+			readonly toLineNumber: number;
+		}[];
 	}
 
 	export interface IModelOptionsChangedEvent {
@@ -4870,6 +4921,11 @@ declare namespace monaco.editor {
 		 * @event
 		 */
 		onMouseLeave(listener: (e: IPartialEditorMouseEvent) => void): IDisposable;
+		/**
+		 * An event emitted on a "mousewheel"
+		 * @event
+		 */
+		onMouseWheel(listener: (e: IMouseWheelEvent) => void): IDisposable;
 		/**
 		 * An event emitted on a "keyup".
 		 * @event

@@ -203,8 +203,8 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 	private _renderDisposable: IDisposable | null;
 	private _markdownHoverParticipant: MarkdownHoverParticipant;
 
-	protected readonly _onDidContentsChanged: Emitter<void> = this._register(new Emitter<void>());
-	public readonly onDidContentsChanged: Event<void> = this._onDidContentsChanged.event;
+	protected readonly _onDidContentsChanged: Emitter<HTMLElement> = this._register(new Emitter<HTMLElement>());
+	public readonly onDidContentsChanged: Event<HTMLElement> = this._onDidContentsChanged.event;
 
 	constructor(
 		editor: ICodeEditor,
@@ -393,7 +393,7 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 		this._editor.layoutContentWidget(this);
 		this._hover.onContentsChanged();
-		this._onDidContentsChanged.fire();
+		this._onDidContentsChanged.fire(this.getDomNode());
 	}
 
 	private layout(): void {
@@ -500,11 +500,15 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
-		this._onDidContentsChanged.fire();
+		this._onDidContentsChanged.fire(this.getDomNode());
 	}
 
 	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
 		this._markdownHoverParticipant.setMarkdownRendererOptions(options);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._lastAnchor?.range;
 	}
 
 	private _withResult(result: IHoverPart[], complete: boolean): void {
