@@ -45,7 +45,7 @@ declare namespace monaco {
 #include(vs/editor/common/standalone/standaloneBase): KeyMod
 #include(vs/base/common/htmlContent): IMarkdownString
 #include(vs/base/browser/keyboardEvent): IKeyboardEvent
-#include(vs/base/browser/mouseEvent): IMouseEvent
+#include(vs/base/browser/mouseEvent): IMouseEvent, IMouseWheelEvent
 #include(vs/editor/common/editorCommon): IScrollEvent
 #include(vs/editor/common/core/position): IPosition, Position
 #include(vs/editor/common/core/range): IRange, Range
