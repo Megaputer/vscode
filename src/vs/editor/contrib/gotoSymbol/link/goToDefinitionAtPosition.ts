@@ -155,7 +155,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			this.previousPromise = null;
 		}
 
-		this.previousPromise = createCancelablePromise(token => this.findDefinition(position, token));
+		this.previousPromise = createCancelablePromise(token => this.findDefinitionOrReference(position, token));
 
 		return this.previousPromise.then(result => {
 			if (!result) {
@@ -341,7 +341,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			DefinitionProviderRegistry.has(this.editor.getModel());
 	}
 
-	private findDefinition(position: Position, token: CancellationToken): Promise<[locations: LocationLink[], isDefinitions: boolean] | null> {
+	private findDefinitionOrReference(position: Position, token: CancellationToken): Promise<[locations: LocationLink[], isDefinitions: boolean] | null> {
 		const model = this.editor.getModel();
 		if (!model) {
 			return Promise.resolve(null);
