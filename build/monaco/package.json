@@ -1,7 +1,7 @@
 {
-  "name": "monaco-editor-core",
-  "private": true,
-  "version": "0.29.2",
+  "name": "@megaputer/monaco-editor-core",
+  "private": false,
+  "version": "0.29.2-rc,
   "description": "A browser based code editor",
   "author": "Microsoft Corporation",
   "license": "MIT",
@@ -9,9 +9,9 @@
   "module": "./esm/vs/editor/editor.main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode"
+    "url": "https://github.com/Megaputer/vscode"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode/issues"
+    "url": "https://github.com/Megaputer/vscode/issues"
   }
 }

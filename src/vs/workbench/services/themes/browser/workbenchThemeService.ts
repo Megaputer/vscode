@@ -13,7 +13,12 @@ import { Registry } from 'vs/platform/registry/common/platform';
 import * as errors from 'vs/base/common/errors';
 import { IConfigurationService, ConfigurationTarget } from 'vs/platform/configuration/common/configuration';
 import { ColorThemeData } from 'vs/workbench/services/themes/common/colorThemeData';
-import { IColorTheme, Extensions as ThemingExtensions, IThemingRegistry } from 'vs/platform/theme/common/themeService';
+import {
+	IColorTheme,
+	Extensions as ThemingExtensions,
+	IThemingRegistry,
+	IExtendedCompletionItemKindTheme
+} from 'vs/platform/theme/common/themeService';
 import { Event, Emitter } from 'vs/base/common/event';
 import { registerFileIconThemeSchemas } from 'vs/workbench/services/themes/common/fileIconThemeSchema';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
@@ -713,6 +718,10 @@ export class WorkbenchThemeService implements IWorkbenchThemeService {
 		if (!silent) {
 			this.onProductIconThemeChange.fire(this.currentProductIconTheme);
 		}
+	}
+
+	getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined {
+		return undefined;
 	}
 }
 

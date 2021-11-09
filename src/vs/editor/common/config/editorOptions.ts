@@ -1150,9 +1150,6 @@ export interface IEditorCommentsOptions {
 	ignoreEmptyLines?: boolean;
 }
 
-/**
- * @internal
- */
 export type EditorCommentsOptions = Readonly<Required<IEditorCommentsOptions>>;
 
 class EditorComments extends BaseEditorOption<EditorOption.comments, EditorCommentsOptions> {
@@ -1383,9 +1380,6 @@ export interface IEditorFindOptions {
 	loop?: boolean;
 }
 
-/**
- * @internal
- */
 export type EditorFindOptions = Readonly<Required<IEditorFindOptions>>;
 
 class EditorFind extends BaseEditorOption<EditorOption.find, EditorFindOptions> {
@@ -1638,9 +1632,6 @@ export interface IGotoLocationOptions {
 	alternativeReferenceCommand?: string;
 }
 
-/**
- * @internal
- */
 export type GoToLocationOptions = Readonly<Required<IGotoLocationOptions>>;
 
 class EditorGoToLocation extends BaseEditorOption<EditorOption.gotoLocation, GoToLocationOptions> {
@@ -1779,6 +1770,11 @@ export interface IEditorHoverOptions {
 	 * Defaults to false.
 	 */
 	above?: boolean;
+	/**
+	 * Max width of the hover widget.
+	 * Defaults to 500.
+	 */
+	maxWidth?: number;
 }
 
 /**
@@ -1794,6 +1790,8 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: 300,
 			sticky: true,
 			above: true,
+			sticky: true,
+			maxWidth: 500
 		};
 		super(
 			EditorOption.hover, 'hover', defaults,
@@ -1818,6 +1816,11 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 					default: defaults.above,
 					description: nls.localize('hover.above', "Prefer showing hovers above the line, if there's space.")
 				},
+				'editor.hover.maxWidth': {
+					type: 'number',
+					default: defaults.maxWidth,
+					description: nls.localize('hover.maxWidth', "Controls the hover widget max width.")
+				},
 			}
 		);
 	}
@@ -1832,6 +1835,8 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: EditorIntOption.clampedInt(input.delay, this.defaultValue.delay, 0, 10000),
 			sticky: boolean(input.sticky, this.defaultValue.sticky),
 			above: boolean(input.above, this.defaultValue.above),
+			sticky: boolean(input.sticky, this.defaultValue.sticky),
+			maxWidth: EditorIntOption.clampedInt(input.maxWidth, this.defaultValue.maxWidth, 0, 1000)
 		};
 	}
 }

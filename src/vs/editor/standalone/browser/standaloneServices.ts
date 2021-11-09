@@ -12,6 +12,7 @@ import { IModeService } from 'vs/editor/common/services/modeService';
 import { ModeServiceImpl } from 'vs/editor/common/services/modeServiceImpl';
 import { IModelService } from 'vs/editor/common/services/modelService';
 import { ModelServiceImpl } from 'vs/editor/common/services/modelServiceImpl';
+import { EditorCompletionScoreServiceImpl, IEditorCompletionScoreService } from 'vs/editor/common/services/IEditorCompletionScoreService';
 import { ITextResourceConfigurationService, ITextResourcePropertiesService } from 'vs/editor/common/services/textResourceConfigurationService';
 import { SimpleBulkEditService, SimpleConfigurationService, SimpleDialogService, SimpleNotificationService, SimpleEditorProgressService, SimpleResourceConfigurationService, SimpleResourcePropertiesService, SimpleUriLabelService, SimpleWorkspaceContextService, StandaloneCommandService, StandaloneKeybindingService, StandaloneTelemetryService, SimpleLayoutService } from 'vs/editor/standalone/browser/simpleServices';
 import { StandaloneCodeEditorServiceImpl } from 'vs/editor/standalone/browser/standaloneCodeServiceImpl';
@@ -184,6 +185,8 @@ export module StaticServices {
 	export const storageService = define(IStorageService, () => new InMemoryStorageService());
 
 	export const editorWorkerService = define(IEditorWorkerService, (o) => new EditorWorkerServiceImpl(modelService.get(o), resourceConfigurationService.get(o), logService.get(o)));
+
+	export const completionScoreService = define(IEditorCompletionScoreService, () => new EditorCompletionScoreServiceImpl());
 }
 
 export class DynamicStandaloneServices extends Disposable {

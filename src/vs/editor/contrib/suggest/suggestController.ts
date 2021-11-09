@@ -11,6 +11,8 @@ import { onUnexpectedError } from 'vs/base/common/errors';
 import { Event } from 'vs/base/common/event';
 import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { SimpleKeybinding } from 'vs/base/common/keybindings';
+import { Emitter, Event } from 'vs/base/common/event';
+import { KeyCode, KeyMod, SimpleKeybinding } from 'vs/base/common/keyCodes';
 import { DisposableStore, dispose, IDisposable, MutableDisposable, toDisposable } from 'vs/base/common/lifecycle';
 import * as platform from 'vs/base/common/platform';
 import { StopWatch } from 'vs/base/common/stopwatch';
@@ -114,6 +116,9 @@ export class SuggestController implements IEditorContribution {
 	private readonly _toDispose = new DisposableStore();
 	private readonly _overtypingCapturer: IdleValue<OvertypingCapturer>;
 	private readonly _selectors = new PriorityRegistry<ISuggestItemPreselector>(s => s.priority);
+
+	private readonly _onDidAcceptSelectedSuggestion = new Emitter<ISelectedSuggestion>();
+	readonly onDidAcceptSelectedSuggestion: Event<ISelectedSuggestion> = this._onDidAcceptSelectedSuggestion.event;
 
 	constructor(
 		editor: ICodeEditor,
@@ -543,6 +548,8 @@ export class SuggestController implements IEditorContribution {
 			flags |= InsertFlags.AlternativeOverwriteConfig;
 		}
 		this._insertSuggestion(item, flags);
+
+		item && this._onDidAcceptSelectedSuggestion.fire(item);
 	}
 	acceptNextSuggestion() {
 		this._alternatives.value.next();

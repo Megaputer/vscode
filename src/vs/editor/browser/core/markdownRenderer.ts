@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IMarkdownString } from 'vs/base/common/htmlContent';
-import { renderMarkdown, MarkdownRenderOptions, MarkedOptions } from 'vs/base/browser/markdownRenderer';
+import {
+	renderMarkdown,
+	MarkdownRenderOptions,
+	MarkedOptions
+} from 'vs/base/browser/markdownRenderer';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IModeService } from 'vs/editor/common/services/modeService';
 import { onUnexpectedError } from 'vs/base/common/errors';
@@ -59,7 +63,11 @@ export class MarkdownRenderer {
 		}
 
 		const disposables = new DisposableStore();
-		const rendered = disposables.add(renderMarkdown(markdown, { ...this._getRenderOptions(markdown, disposables), ...options }, markedOptions));
+		const rendered = disposables.add(renderMarkdown(
+			markdown,
+			{ ...this._getRenderOptions(markdown, disposables), ...options },
+			markedOptions
+		));
 		return {
 			element: rendered.element,
 			dispose: () => disposables.dispose()

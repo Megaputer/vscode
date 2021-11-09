@@ -8,6 +8,7 @@ import { asArray } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { IMarkdownString, isEmptyMarkdownString, MarkdownString } from 'vs/base/common/htmlContent';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { MarkdownRenderer } from 'vs/editor/browser/core/markdownRenderer';
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
 import { Position } from 'vs/editor/common/core/position';
@@ -41,6 +42,7 @@ export class MarkdownHover implements IHoverPart {
 }
 
 export class MarkdownHoverParticipant implements IEditorHoverParticipant<MarkdownHover> {
+	private _markdownRendererOptions?: MarkdownRenderOptions;
 
 	constructor(
 		private readonly _editor: ICodeEditor,
@@ -117,6 +119,10 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 		return result;
 	}
 
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownRendererOptions = options;
+	}
+
 	public renderHoverParts(hoverParts: MarkdownHover[], fragment: DocumentFragment, statusBar: IEditorHoverStatusBar): IDisposable {
 		const disposables = new DisposableStore();
 		for (const hoverPart of hoverParts) {
@@ -131,7 +137,7 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 					hoverContentsElement.className = 'hover-contents code-hover-contents';
 					this._hover.onContentsChanged();
 				}));
-				const renderedContents = disposables.add(renderer.render(contents));
+				const renderedContents = disposables.add(renderer.render(contents, this._markdownRendererOptions));
 				hoverContentsElement.appendChild(renderedContents.element);
 				fragment.appendChild(markdownHoverElement);
 			}
