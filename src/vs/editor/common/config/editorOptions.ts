@@ -1790,7 +1790,6 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: 300,
 			sticky: true,
 			above: true,
-			sticky: true,
 			maxWidth: 500
 		};
 		super(
@@ -1835,7 +1834,6 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: EditorIntOption.clampedInt(input.delay, this.defaultValue.delay, 0, 10000),
 			sticky: boolean(input.sticky, this.defaultValue.sticky),
 			above: boolean(input.above, this.defaultValue.above),
-			sticky: boolean(input.sticky, this.defaultValue.sticky),
 			maxWidth: EditorIntOption.clampedInt(input.maxWidth, this.defaultValue.maxWidth, 0, 1000)
 		};
 	}

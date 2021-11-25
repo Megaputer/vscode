@@ -7,7 +7,7 @@ import * as DOM from 'vs/base/browser/dom';
 import * as dompurify from 'vs/base/browser/dompurify/dompurify';
 import { DomEmitter } from 'vs/base/browser/event';
 import { createElement, FormattedTextRenderOptions } from 'vs/base/browser/formattedTextRenderer';
-import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
+import {IMouseEvent, StandardMouseEvent} from 'vs/base/browser/mouseEvent';
 import { renderLabelWithIcons } from 'vs/base/browser/ui/iconLabel/iconLabels';
 import { raceCancellation } from 'vs/base/common/async';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
@@ -265,12 +265,11 @@ export function renderMarkdown(
 		value = markdownEscapeEscapedIcons(value);
 	}
 
-	const renderedMarkdown = marked.parse(value, markedOptions);
+	let renderedMarkdown = marked.parse(value, markedOptions);
 	element.innerHTML = sanitizeRenderedMarkdown(
 		{ ...markdown, ...options.sanitizerConfig },
 		renderedMarkdown
 	) as unknown as string;
-	let renderedMarkdown = marked.parse(value, markedOptions);
 
 	// Rewrite theme icons
 	if (markdown.supportThemeIcons) {

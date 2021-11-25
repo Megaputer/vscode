@@ -355,9 +355,19 @@ export function setTokensProvider(languageId: string, provider: TokensProvider |
 /**
  * Set the tokens provider for a language (monarch implementation).
  */
-export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>): IDisposable {
+export function setMonarchTokensProvider(
+	languageId: string,
+	languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>,
+	onTokenParsed?: (line: number, startOffset: number, type: string) => void
+): IDisposable {
 	const create = (languageDef: IMonarchLanguage) => {
-		return createTokenizationSupport(StaticServices.modeService.get(), StaticServices.standaloneThemeService.get(), languageId, compile(languageId, languageDef));
+		return createTokenizationSupport(
+			StaticServices.modeService.get(),
+			StaticServices.standaloneThemeService.get(),
+			languageId,
+			compile(languageId, languageDef),
+			onTokenParsed
+		);
 	};
 	if (isThenable<IMonarchLanguage>(languageDef)) {
 		return modes.TokenizationRegistry.registerPromise(languageId, languageDef.then(languageDef => create(languageDef)));
