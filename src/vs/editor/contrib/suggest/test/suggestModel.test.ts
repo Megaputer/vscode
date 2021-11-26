@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as assert from 'assert';
 import { Event } from 'vs/base/common/event';
+import { FuzzyScorer } from "vs/base/common/filters";
 import { DisposableStore } from 'vs/base/common/lifecycle';
 import { URI } from 'vs/base/common/uri';
 import { mock } from 'vs/base/test/common/mock';
@@ -21,6 +22,7 @@ import { LanguageConfigurationRegistry } from 'vs/editor/common/modes/languageCo
 import { NULL_STATE } from 'vs/editor/common/modes/nullMode';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorkerService';
 import { IModeService } from 'vs/editor/common/services/modeService';
+import { IEditorCompletionScoreService } from "vs/editor/common/services/IEditorCompletionScoreService";
 import { SnippetController2 } from 'vs/editor/contrib/snippet/snippetController2';
 import { SuggestController } from 'vs/editor/contrib/suggest/suggestController';
 import { ISuggestMemoryService } from 'vs/editor/contrib/suggest/suggestMemory';
@@ -220,7 +222,14 @@ suite('SuggestModel - TriggerAndCancelOracle', function () {
 				NullTelemetryService,
 				new NullLogService(),
 				new MockContextKeyService(),
-				new TestConfigurationService()
+				new TestConfigurationService(),
+				new class extends mock<IEditorCompletionScoreService>() {
+					override registerCompletionScoreMethod(fuzzyScorer: FuzzyScorer) {
+					}
+					override getScorer() {
+						return undefined;
+					}
+				}
 			);
 			disposables.add(oracle);
 			disposables.add(editor);

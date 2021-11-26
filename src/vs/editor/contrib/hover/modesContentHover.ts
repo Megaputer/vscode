@@ -7,8 +7,10 @@ import * as dom from 'vs/base/browser/dom';
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { HoverAction, HoverWidget } from 'vs/base/browser/ui/hover/hoverWidget';
 import { Widget } from 'vs/base/browser/ui/widget';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { coalesce, flatten } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
+import { Emitter, Event } from 'vs/base/common/event';
 import { KeyCode } from 'vs/base/common/keyCodes';
 import { Disposable, DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
 import { Constants } from 'vs/base/common/uint';
@@ -201,6 +203,10 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 	private _colorPicker: ColorPickerWidget | null;
 	private _renderDisposable: IDisposable | null;
 	private _preferAbove: boolean;
+	private _markdownHoverParticipant: MarkdownHoverParticipant;
+
+	protected readonly _onDidContentsChanged: Emitter<HTMLElement> = this._register(new Emitter<HTMLElement>());
+	public readonly onDidContentsChanged: Event<HTMLElement> = this._onDidContentsChanged.event;
 
 	constructor(
 		editor: ICodeEditor,
@@ -213,7 +219,7 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 		this._participants = [
 			instantiationService.createInstance(ColorHoverParticipant, editor, this),
-			instantiationService.createInstance(MarkdownHoverParticipant, editor, this),
+			this._markdownHoverParticipant = instantiationService.createInstance(MarkdownHoverParticipant, editor, this),
 			instantiationService.createInstance(InlineCompletionsHoverParticipant, editor, this),
 			instantiationService.createInstance(MarkerHoverParticipant, editor, this),
 		];
@@ -402,16 +408,18 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 		this._editor.layoutContentWidget(this);
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire(this.getDomNode());
 	}
 
 	private layout(): void {
 		const height = Math.max(this._editor.getLayoutInfo().height / 4, 250);
 		const { fontSize, lineHeight } = this._editor.getOption(EditorOption.fontInfo);
+		const maxWidth = this._editor.getOption(EditorOption.hover).maxWidth ?? 500;
 
 		this._hover.contentsDomNode.style.fontSize = `${fontSize}px`;
 		this._hover.contentsDomNode.style.lineHeight = `${lineHeight / fontSize}`;
 		this._hover.contentsDomNode.style.maxHeight = `${height}px`;
-		this._hover.contentsDomNode.style.maxWidth = `${Math.max(this._editor.getLayoutInfo().width * 0.66, 500)}px`;
+		this._hover.contentsDomNode.style.maxWidth = `${Math.max(this._editor.getLayoutInfo().width * 0.66, maxWidth)}px`;
 	}
 
 	public onModelDecorationsChanged(): void {
@@ -507,6 +515,15 @@ export class ModesContentHoverWidget extends Widget implements IContentWidget, I
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire(this.getDomNode());
+	}
+
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownHoverParticipant.setMarkdownRendererOptions(options);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._lastAnchor?.range;
 	}
 
 	private _withResult(result: IHoverPart[], complete: boolean): void {

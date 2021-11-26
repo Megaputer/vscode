@@ -26,6 +26,7 @@ import { ILogService } from 'vs/platform/log/common/log';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { CompletionModel } from './completionModel';
 import { CompletionDurations, CompletionItem, CompletionOptions, getSnippetSuggestSupport, getSuggestionComparator, provideSuggestionItems, SnippetSortOrder } from './suggest';
+import { IEditorCompletionScoreService } from "vs/editor/common/services/IEditorCompletionScoreService";
 
 export interface ICancelEvent {
 	readonly retrigger: boolean;
@@ -165,6 +166,7 @@ export class SuggestModel implements IDisposable {
 		@ILogService private readonly _logService: ILogService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
+		@IEditorCompletionScoreService private readonly _editorCompletionScoreService: IEditorCompletionScoreService
 	) {
 		this._currentSelection = this._editor.getSelection() || new Selection(1, 1, 1, 1);
 
@@ -530,14 +532,18 @@ export class SuggestModel implements IDisposable {
 			}
 
 			const ctx = new LineContext(model, this._editor.getPosition(), auto, context.shy);
-			this._completionModel = new CompletionModel(items, this._context!.column, {
-				leadingLineContent: ctx.leadingLineContent,
-				characterCountDelta: ctx.column - this._context!.column
-			},
+			this._completionModel = new CompletionModel(
+				items,
+				this._context!.column,
+				{
+					leadingLineContent: ctx.leadingLineContent,
+					characterCountDelta: ctx.column - this._context!.column
+				},
 				wordDistance,
 				this._editor.getOption(EditorOption.suggest),
 				this._editor.getOption(EditorOption.snippetSuggestions),
-				clipboardText
+				clipboardText,
+				this._editorCompletionScoreService.getScorer()
 			);
 
 			// store containers so that they can be disposed later

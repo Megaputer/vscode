@@ -1781,6 +1781,11 @@ export interface IEditorHoverOptions {
 	 * Defaults to false.
 	 */
 	above?: boolean;
+	/**
+	 * Max width of the hover widget.
+	 * Defaults to 500.
+	 */
+	maxWidth?: number;
 }
 
 /**
@@ -1796,6 +1801,7 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: 300,
 			sticky: true,
 			above: true,
+			maxWidth: 500
 		};
 		super(
 			EditorOption.hover, 'hover', defaults,
@@ -1820,6 +1826,11 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 					default: defaults.above,
 					description: nls.localize('hover.above', "Prefer showing hovers above the line, if there's space.")
 				},
+				'editor.hover.maxWidth': {
+					type: 'number',
+					default: defaults.maxWidth,
+					description: nls.localize('hover.maxWidth', "Controls the hover widget max width.")
+				},
 			}
 		);
 	}
@@ -1834,6 +1845,7 @@ class EditorHover extends BaseEditorOption<EditorOption.hover, EditorHoverOption
 			delay: EditorIntOption.clampedInt(input.delay, this.defaultValue.delay, 0, 10000),
 			sticky: boolean(input.sticky, this.defaultValue.sticky),
 			above: boolean(input.above, this.defaultValue.above),
+			maxWidth: EditorIntOption.clampedInt(input.maxWidth, this.defaultValue.maxWidth, 0, 1000)
 		};
 	}
 }
