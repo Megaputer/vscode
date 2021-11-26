@@ -4921,7 +4921,7 @@ declare namespace monaco.editor {
 		 * An event emitted on a "mousewheel"
 		 * @event
 		 */
-		onMouseWheel(listener: (e: IMouseWheelEvent) => void): IDisposable;
+		onMouseWheel: IEvent<IMouseWheelEvent>;
 		/**
 		 * An event emitted on a "keyup".
 		 * @event
