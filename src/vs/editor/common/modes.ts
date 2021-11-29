@@ -188,6 +188,8 @@ export interface ITokenizationSupport {
 	tokenize(line: string, hasEOL: boolean, state: IState, offsetDelta: number): TokenizationResult;
 
 	tokenize2(line: string, hasEOL: boolean, state: IState, offsetDelta: number): TokenizationResult2;
+
+	setLineIndex?(index: number): void;
 }
 
 /**

@@ -262,6 +262,7 @@ export class TextModelTokenization extends Disposable {
 					// disposed in the meantime
 					return;
 				}
+				this._textModel.fireOnDidChangeTokenizationState(true);
 				this._revalidateTokensNow();
 			});
 		}
@@ -359,6 +360,7 @@ export class TextModelTokenization extends Disposable {
 			const text = this._textModel.getLineContent(lineIndex + 1);
 			const lineStartState = this._tokenizationStateStore.getBeginState(lineIndex);
 
+			this._tokenizationSupport.setLineIndex?.(lineIndex);
 			const r = safeTokenize(this._languageIdCodec, languageId, this._tokenizationSupport, text, true, lineStartState!);
 			builder.add(lineIndex + 1, r.tokens);
 			this._tokenizationStateStore.setEndState(linesLength, lineIndex, r.endState);

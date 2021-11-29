@@ -1240,6 +1240,11 @@ export interface ITextModel {
 	 */
 	onDidChangeContent(listener: (e: IModelContentChangedEvent) => void): IDisposable;
 	/**
+	 * An event emitted when the contents of the model have changed fast.
+	 * @event
+	 */
+	onDidChangeContentFast(listener: (e: IModelContentChangedEvent) => void): IDisposable;
+	/**
 	 * An event emitted when decorations of the model have changed.
 	 * @event
 	 */
@@ -1264,6 +1269,11 @@ export interface ITextModel {
 	 * @event
 	 */
 	onDidChangeTokens(listener: (e: IModelTokensChangedEvent) => void): IDisposable;
+	/**
+	 * An event emitted when the tokenization started or finished
+	 * @event
+	 */
+	onDidChangeTokenizationState(listener: (started: boolean) => void): IDisposable;
 	/**
 	 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 	 * @event
