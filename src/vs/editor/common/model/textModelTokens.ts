@@ -331,6 +331,10 @@ export class TextModelTokenization extends Disposable {
 		return false;
 	}
 
+	public setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenizationSupport?.setLineIndex?.(index);
+	}
+
 	private _hasLinesToTokenize(): boolean {
 		if (!this._tokenizationSupport) {
 			return false;
