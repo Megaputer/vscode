@@ -15,7 +15,15 @@ import { CursorChangeReason, ICursorSelectionChangedEvent } from 'vs/editor/comm
 import { IPosition, Position } from 'vs/editor/common/core/position';
 import { Selection } from 'vs/editor/common/core/selection';
 import { ITextModel, IWordAtPosition } from 'vs/editor/common/model';
-import { CompletionContext, CompletionItemKind, CompletionItemProvider, CompletionProviderRegistry, CompletionTriggerKind, StandardTokenType } from 'vs/editor/common/modes';
+import {
+	CompletionContext,
+	CompletionItemKind,
+	CompletionItemProvider,
+	CompletionProviderRegistry,
+	CompletionTriggerKind,
+	StandardTokenType,
+	CompletionItem as ModesCompletionItem
+} from 'vs/editor/common/modes';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorkerService';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/snippetController2';
 import { WordDistance } from 'vs/editor/contrib/suggest/wordDistance';
@@ -25,7 +33,16 @@ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { ILogService } from 'vs/platform/log/common/log';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { CompletionModel } from './completionModel';
-import { CompletionDurations, CompletionItem, CompletionOptions, getSnippetSuggestSupport, getSuggestionComparator, provideSuggestionItems, SnippetSortOrder } from './suggest';
+import {
+	CompletionDurations,
+	CompletionItem,
+	CompletionOptions,
+	getSnippetSuggestSupport,
+	getSuggestionComparator,
+	provideSuggestionItems,
+	showSimpleSuggestions,
+	SnippetSortOrder
+} from './suggest';
 import { IEditorCompletionScoreService } from "vs/editor/common/services/IEditorCompletionScoreService";
 
 export interface ICancelEvent {
@@ -557,6 +574,10 @@ export class SuggestModel implements IDisposable {
 		}).catch(onUnexpectedError);
 	}
 
+	showCompletionItems(items: ModesCompletionItem[]) {
+		showSimpleSuggestions(this._editor, items);
+	}
+
 	private _telemetryGate: number = 0;
 
 	private _reportDurationsTelemetry(durations: CompletionDurations): void {
@@ -704,6 +725,14 @@ export class SuggestModel implements IDisposable {
 
 				} else {
 					// nothing left
+					this.cancel();
+					return;
+				}
+			}
+
+			if (this._context.auto) {
+				const content = this._context.leadingLineContent;
+				if (content.match(/\s$/)) {
 					this.cancel();
 					return;
 				}

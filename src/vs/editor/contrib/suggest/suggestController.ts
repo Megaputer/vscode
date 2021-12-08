@@ -768,13 +768,13 @@ registerEditorCommand(new SuggestCommand({
 		weight: weight,
 		kbExpr: EditorContextKeys.textInputFocus,
 		primary: KeyCode.Escape,
-		secondary: [KeyMod.Shift | KeyCode.Escape]
+		secondary: [KeyMod.Shift | KeyCode.Escape, KeyCode.RightArrow]
 	}
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectNextSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectNextSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -799,13 +799,13 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectLastSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectLastSuggestion()
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectPrevSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectPrevSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -830,7 +830,7 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectFirstSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectFirstSuggestion()
 }));
 
