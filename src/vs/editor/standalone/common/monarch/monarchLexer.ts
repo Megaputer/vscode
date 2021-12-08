@@ -237,6 +237,7 @@ interface IMonarchTokensCollector {
 export type TokensCollectorEmitListener = (line: number, offset: number, type: string) => void;
 export interface TokenInfoEmitter {
 	emit(offset: number, type: string): void;
+	getLineIndex(): number;
 }
 
 class MonarchClassicTokensCollector implements IMonarchTokensCollector {
@@ -315,6 +316,7 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 	}
 
 	public emit(startOffset: number, type: string): void {
+		this._emitter?.emit(startOffset, type);
 		let metadata = this._theme.match(this._currentLanguageId, type);
 		if (this._lastTokenMetadata === metadata) {
 			return;
@@ -322,7 +324,6 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 		this._lastTokenMetadata = metadata;
 		this._tokens.push(startOffset);
 		this._tokens.push(metadata);
-		this._emitter?.emit(startOffset, type);
 	}
 
 	private static _merge(a: Uint32Array | null, b: number[], c: Uint32Array | null): Uint32Array {
@@ -364,6 +365,7 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 			return embeddedModeState;
 		}
 
+		this._emitter && nestedModeTokenizationSupport.setLineIndex?.(this._emitter.getLineIndex());
 		let nestedResult = nestedModeTokenizationSupport.tokenize2(embeddedModeLine, hasEOL, embeddedModeState, offsetDelta);
 		this._prependTokens = MonarchModernTokensCollector._merge(this._prependTokens, this._tokens, nestedResult.tokens);
 		this._tokens = [];
@@ -395,6 +397,10 @@ class ParsedTokenInfoEmitter implements TokenInfoEmitter {
 		if (this.line >= 0) {
 			this.listener(this.line, offset, type);
 		}
+	}
+
+	getLineIndex(): number {
+		return this.line;
 	}
 }
 
