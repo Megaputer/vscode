@@ -6,6 +6,7 @@
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
 import { KeyChord, KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { ICodeEditor, IEditorMouseEvent, MouseTargetType } from 'vs/editor/browser/editorBrowser';
 import { EditorAction, registerEditorAction, registerEditorContribution, ServicesAccessor } from 'vs/editor/browser/editorExtensions';
 import { ConfigurationChangedEvent, EditorOption } from 'vs/editor/common/config/editorOptions';
@@ -225,6 +226,18 @@ export class ModesHoverController implements IEditorContribution {
 		this._didChangeConfigurationHandler.dispose();
 		this._glyphWidget?.dispose();
 		this._contentWidget?.dispose();
+	}
+
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._getOrCreateContentWidget().setMarkdownRendererOptions(options);
+	}
+
+	public onDidContentsChanged(listener: (element: HTMLElement) => void) {
+		this._getOrCreateContentWidget().onDidContentsChanged(listener);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._getOrCreateContentWidget().getLastHoveredRange();
 	}
 }
 

@@ -42,6 +42,7 @@ import { IEditorProgressService } from 'vs/platform/progress/common/progress';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
 import { StandaloneThemeServiceImpl } from 'vs/editor/standalone/browser/standaloneThemeServiceImpl';
 import { splitLines } from 'vs/base/common/strings';
+import { FuzzyScorer } from "vs/base/common/filters";
 import { IModelService } from 'vs/editor/common/services/modelService';
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -312,6 +313,13 @@ export function defineTheme(themeName: string, themeData: IStandaloneThemeData):
 }
 
 /**
+ * Define a new completion item kinds.
+ */
+export function defineExtendedCompletionItemKinds(completionItemKinds: Map<number, string>): void {
+	StaticServices.standaloneThemeService.get().registerExtendedCompletionItemKinds(completionItemKinds);
+}
+
+/**
  * Switches to a theme.
  */
 export function setTheme(themeName: string): void {
@@ -330,6 +338,13 @@ export function remeasureFonts(): void {
  */
 export function registerCommand(id: string, handler: (accessor: any, ...args: any[]) => void): IDisposable {
 	return CommandsRegistry.registerCommand({ id, handler });
+}
+
+/**
+ * Register a custom completion score method.
+ */
+export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
+	StaticServices.completionScoreService.get().registerCompletionScoreMethod(scorer);
 }
 
 /**
@@ -361,9 +376,11 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		colorizeModelLine: <any>colorizeModelLine,
 		tokenize: <any>tokenize,
 		defineTheme: <any>defineTheme,
+		defineExtendedCompletionItemKinds: <any>defineExtendedCompletionItemKinds,
 		setTheme: <any>setTheme,
 		remeasureFonts: remeasureFonts,
 		registerCommand: registerCommand,
+		registerCompletionScoreMethod: registerCompletionScoreMethod,
 
 		// enums
 		AccessibilitySupport: standaloneEnums.AccessibilitySupport,

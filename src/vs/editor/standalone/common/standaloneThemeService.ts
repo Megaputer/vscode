@@ -39,4 +39,5 @@ export interface IStandaloneThemeService extends IThemeService {
 
 	setColorMapOverride(colorMapOverride: Color[] | null): void;
 
+	registerExtendedCompletionItemKinds(items: Map<number, string>): void;
 }

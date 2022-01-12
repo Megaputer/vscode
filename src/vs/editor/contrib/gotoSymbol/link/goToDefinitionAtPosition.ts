@@ -31,7 +31,7 @@ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation
 import { editorActiveLinkForeground } from 'vs/platform/theme/common/colorRegistry';
 import { registerThemingParticipant } from 'vs/platform/theme/common/themeService';
 import { DefinitionAction } from '../goToCommands';
-import { getDefinitionsAtPosition } from '../goToSymbol';
+import { getDefinitionsAtPosition, getReferencesAtPosition } from '../goToSymbol';
 
 export class GotoDefinitionAtPositionEditorContribution implements IEditorContribution {
 
@@ -43,7 +43,8 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 	private readonly toUnhookForKeyboard = new DisposableStore();
 	private linkDecorations: string[] = [];
 	private currentWordAtPosition: IWordAtPosition | null = null;
-	private previousPromise: CancelablePromise<LocationLink[] | null> | null = null;
+	private previousPromise: CancelablePromise<[LocationLink[], boolean] | null> | null = null;
+	private useAlternativeCommand = false;
 
 	constructor(
 		editor: ICodeEditor,
@@ -155,19 +156,31 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			this.previousPromise = null;
 		}
 
-		this.previousPromise = createCancelablePromise(token => this.findDefinition(position, token));
+		this.previousPromise = createCancelablePromise(token => this.findDefinitionOrReference(position, token));
 
-		return this.previousPromise.then(results => {
-			if (!results || !results.length || !state.validate(this.editor)) {
+		return this.previousPromise.then(result => {
+			if (!result) {
 				this.removeLinkDecorations();
 				return;
 			}
 
+			const [results, isDefinitions] = result;
+			if (!results.length || !state.validate(this.editor)) {
+				this.removeLinkDecorations();
+				return;
+			}
+
+			this.useAlternativeCommand = !isDefinitions;
+
 			// Multiple results
 			if (results.length > 1) {
+				const value = isDefinitions
+					? nls.localize('multipleResults', "Click to show {0} definitions.", results.length)
+					: nls.localize('multipleResults', "Click to show {0} references.", results.length);
+
 				this.addDecoration(
 					new Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn),
-					new MarkdownString().appendText(nls.localize('multipleResults', "Click to show {0} definitions.", results.length))
+					new MarkdownString().appendText(value)
 				);
 			}
 
@@ -329,13 +342,21 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			DefinitionProviderRegistry.has(this.editor.getModel());
 	}
 
-	private findDefinition(position: Position, token: CancellationToken): Promise<LocationLink[] | null> {
+	private findDefinitionOrReference(position: Position, token: CancellationToken): Promise<[locations: LocationLink[], isDefinitions: boolean] | null> {
 		const model = this.editor.getModel();
 		if (!model) {
 			return Promise.resolve(null);
 		}
 
-		return getDefinitionsAtPosition(model, position, token);
+		return getDefinitionsAtPosition(model, position, token)
+			.then(result => {
+				if (!result.length) {
+					return getReferencesAtPosition(model, position, false, token)
+						.then(references => [references, false]);
+				}
+
+				return [result, true];
+			});
 	}
 
 	private gotoDefinition(position: Position, openToSide: boolean): Promise<any> {
@@ -343,7 +364,13 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 		return this.editor.invokeWithinContext((accessor) => {
 			const canPeek = !openToSide && this.editor.getOption(EditorOption.definitionLinkOpensInPeek) && !this.isInPeekEditor(accessor);
 			const action = new DefinitionAction({ openToSide, openInPeek: canPeek, muteMessage: true }, { alias: '', label: '', id: '', precondition: undefined });
-			return action.run(accessor, this.editor);
+
+			if (this.useAlternativeCommand) {
+				const altActionId = this.editor.getOption(EditorOption.gotoLocation).alternativeDefinitionCommand;
+				return altActionId ? this.editor.getAction(altActionId).run() : Promise.resolve();
+			} else {
+				return action.run(accessor, this.editor);
+			}
 		});
 	}
 
