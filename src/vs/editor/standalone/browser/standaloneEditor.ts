@@ -344,7 +344,7 @@ export function registerCommand(id: string, handler: (accessor: any, ...args: an
  * Register a custom completion score method.
  */
 export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
-	StaticServices.completionScoreService.get().registerCompletionScoreMethod(scorer);
+	StaticServices.completionService.get().registerCompletionScoreMethod(scorer);
 }
 
 /**

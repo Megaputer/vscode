@@ -17,12 +17,22 @@ import { TokenizationResult2 } from 'vs/editor/common/core/token';
 import { Handler } from 'vs/editor/common/editorCommon';
 import { ITextModel } from 'vs/editor/common/model';
 import { TextModel } from 'vs/editor/common/model/textModel';
-import { CompletionItemKind, CompletionItemProvider, CompletionList, CompletionProviderRegistry, CompletionTriggerKind, IState, MetadataConsts, TokenizationRegistry } from 'vs/editor/common/modes';
+import {
+	CompletionItemKind,
+	CompletionItemProvider,
+	CompletionList,
+	CompletionListItemSelectionMethod,
+	CompletionProviderRegistry,
+	CompletionTriggerKind,
+	IState,
+	MetadataConsts,
+	TokenizationRegistry
+} from 'vs/editor/common/modes';
 import { LanguageConfigurationRegistry } from 'vs/editor/common/modes/languageConfigurationRegistry';
 import { NULL_STATE } from 'vs/editor/common/modes/nullMode';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorkerService';
 import { IModeService } from 'vs/editor/common/services/modeService';
-import { IEditorCompletionScoreService } from 'vs/editor/common/services/IEditorCompletionScoreService';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/snippetController2';
 import { SuggestController } from 'vs/editor/contrib/suggest/suggestController';
 import { ISuggestMemoryService } from 'vs/editor/contrib/suggest/suggestMemory';
@@ -224,10 +234,15 @@ suite('SuggestModel - TriggerAndCancelOracle', function () {
 				new NullLogService(),
 				new MockContextKeyService(),
 				new TestConfigurationService(),
-				new class extends mock<IEditorCompletionScoreService>() {
+				new class extends mock<IEditorCompletionService>() {
 					override registerCompletionScoreMethod(fuzzyScorer: FuzzyScorer) {
 					}
 					override getScorer() {
+						return undefined;
+					}
+					override(fuzzyScorer: CompletionListItemSelectionMethod) {
+					}
+					override getCompletionListItemSelectorMethod(): CompletionListItemSelectionMethod | undefined {
 						return undefined;
 					}
 				}

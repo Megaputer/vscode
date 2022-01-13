@@ -526,19 +526,20 @@ export class SuggestWidget implements IDisposable {
 		this._focusedItem = undefined;
 		this._list.splice(0, this._list.length, this._completionModel.items);
 		this._setState(isFrozen ? State.Frozen : State.Open);
-		if (!isAuto) {
-			this._list.reveal(selectionIndex, 0);
-			this._list.setFocus([selectionIndex]);
-		} else {
-			const items = this._completionModel.items;
 
-			const index = items.findIndex(it => it.word ? (it.word.length > 1 ? it.completion.insertText.startsWith(it.word) : false) : false);
-			if (index >= 0) {
+		const completionSelector = this._completionModel.customCompletionListItemSelectorMethod;
+		if (completionSelector) {
+			let items = this._completionModel.items.map(it => it.completion);
+			const index = completionSelector(isAuto, selectionIndex, items);
+			if (index < 0) {
+				this._list.setFocus([]);
+			} else {
 				this._list.reveal(index, 0);
 				this._list.setFocus([index]);
-			} else {
-				this._list.setFocus([]);
 			}
+		} else {
+			this._list.reveal(selectionIndex, 0);
+			this._list.setFocus([selectionIndex]);
 		}
 
 		this._layout(this.element.size);

@@ -5581,6 +5581,11 @@ declare namespace monaco.languages {
 	export function registerInlayHintsProvider(languageId: string, provider: InlayHintsProvider): IDisposable;
 
 	/**
+	 * Register a custom completion list item selection method.
+	 */
+	export function registerCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void;
+
+	/**
 	 * Contains additional diagnostic information about the context in which
 	 * a [code action](#CodeActionProvider.provideCodeActions) is run.
 	 */
@@ -6045,6 +6050,8 @@ declare namespace monaco.languages {
 		incomplete?: boolean;
 		dispose?(): void;
 	}
+
+	export type CompletionListItemSelectionMethod = (isAuto: boolean, selectionIndex: number, completionItems: CompletionItem[]) => number;
 
 	/**
 	 * How a suggest provider was triggered.
