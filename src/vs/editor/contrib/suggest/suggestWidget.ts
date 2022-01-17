@@ -529,7 +529,7 @@ export class SuggestWidget implements IDisposable {
 
 		const completionSelector = this._completionModel.customCompletionListItemSelectorMethod;
 		if (completionSelector) {
-			let items = this._completionModel.items.map(it => it.completion);
+			const items = this._completionModel.items.map(it => ({ completion: it.completion, word: it.word }));
 			const index = completionSelector(isAuto, selectionIndex, items);
 			if (index < 0) {
 				this._list.setFocus([]);
