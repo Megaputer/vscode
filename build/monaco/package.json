@@ -1,7 +1,7 @@
 {
   "name": "@megaputer/monaco-editor-core",
   "private": false,
-  "version": "0.31.0-rc1",
+  "version": "0.31.0-rc2",
   "description": "A browser based code editor",
   "author": "Microsoft Corporation",
   "license": "MIT",

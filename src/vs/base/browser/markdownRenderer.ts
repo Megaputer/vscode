@@ -269,12 +269,10 @@ export function renderMarkdown(
 		renderedMarkdown = elements.map(e => typeof e === 'string' ? e : e.outerHTML).join('');
 	}
 
-	element.innerHTML = sanitizeRenderedMarkdown(
-		{ ...markdown, ...options.sanitizerConfig },
-		renderedMarkdown
-	) as unknown as string;
+	const sanitizerOptions = { ...markdown, ...options.sanitizerConfig };
+	element.innerHTML = sanitizeRenderedMarkdown(sanitizerOptions, renderedMarkdown) as unknown as string;
 	const htmlParser = new DOMParser();
-	const markdownHtmlDoc = htmlParser.parseFromString(sanitizeRenderedMarkdown(markdown, renderedMarkdown) as unknown as string, 'text/html');
+	const markdownHtmlDoc = htmlParser.parseFromString(sanitizeRenderedMarkdown(sanitizerOptions, renderedMarkdown) as unknown as string, 'text/html');
 
 	markdownHtmlDoc.body.querySelectorAll('img')
 		.forEach(img => {
@@ -292,7 +290,7 @@ export function renderMarkdown(
 			}
 		});
 
-	element.innerHTML = sanitizeRenderedMarkdown(markdown, markdownHtmlDoc.body.innerHTML) as unknown as string;
+	element.innerHTML = sanitizeRenderedMarkdown(sanitizerOptions, markdownHtmlDoc.body.innerHTML) as unknown as string;
 
 	// signal that async code blocks can be now be inserted
 	signalInnerHTML!();
