@@ -577,6 +577,13 @@ export function registerInlayHintsProvider(languageId: string, provider: modes.I
 }
 
 /**
+ * Register a custom completion list item selection method.
+ */
+export function registerCompletionListItemSelectorMethod(method: modes.CompletionListItemSelectionMethod): void {
+	StaticServices.completionService.get().registerCompletionListItemSelectorMethod(method);
+}
+
+/**
  * Contains additional diagnostic information about the context in which
  * a [code action](#CodeActionProvider.provideCodeActions) is run.
  */
@@ -666,6 +673,7 @@ export function createMonacoLanguagesAPI(): typeof monaco.languages {
 		registerDocumentRangeSemanticTokensProvider: <any>registerDocumentRangeSemanticTokensProvider,
 		registerInlineCompletionsProvider: <any>registerInlineCompletionsProvider,
 		registerInlayHintsProvider: <any>registerInlayHintsProvider,
+		registerCompletionListItemSelectorMethod: <any>registerCompletionListItemSelectorMethod,
 
 		// enums
 		DocumentHighlightKind: standaloneEnums.DocumentHighlightKind,

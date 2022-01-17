@@ -25,6 +25,7 @@ import {
 	CompletionItem as ModesCompletionItem
 } from 'vs/editor/common/modes';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorkerService';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/snippetController2';
 import { WordDistance } from 'vs/editor/contrib/suggest/wordDistance';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
@@ -43,7 +44,6 @@ import {
 	showSimpleSuggestions,
 	SnippetSortOrder
 } from './suggest';
-import { IEditorCompletionScoreService } from "vs/editor/common/services/IEditorCompletionScoreService";
 
 export interface ICancelEvent {
 	readonly retrigger: boolean;
@@ -183,7 +183,7 @@ export class SuggestModel implements IDisposable {
 		@ILogService private readonly _logService: ILogService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
-		@IEditorCompletionScoreService private readonly _editorCompletionScoreService: IEditorCompletionScoreService
+		@IEditorCompletionService private readonly _editorCompletionScoreService: IEditorCompletionService
 	) {
 		this._currentSelection = this._editor.getSelection() || new Selection(1, 1, 1, 1);
 
@@ -560,7 +560,8 @@ export class SuggestModel implements IDisposable {
 				this._editor.getOption(EditorOption.suggest),
 				this._editor.getOption(EditorOption.snippetSuggestions),
 				clipboardText,
-				this._editorCompletionScoreService.getScorer()
+				this._editorCompletionScoreService.getScorer(),
+				this._editorCompletionScoreService.getCompletionListItemSelectorMethod()
 			);
 
 			// store containers so that they can be disposed later

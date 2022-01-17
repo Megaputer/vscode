@@ -592,6 +592,11 @@ export interface CompletionList {
 	duration?: number;
 }
 
+export type CompletionItemInfo = { completion: CompletionItem, word?: string };
+
+export type CompletionListItemSelectionMethod
+	= (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
+
 /**
  * How a suggest provider was triggered.
  */
