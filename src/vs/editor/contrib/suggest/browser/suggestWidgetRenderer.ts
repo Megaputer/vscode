@@ -198,7 +198,11 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 			// normal icon
 			data.icon.className = 'icon hide';
 			data.iconContainer.className = '';
-			data.iconContainer.classList.add('suggest-icon', ...CSSIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind)));
+			const className = this._themeService
+				.getExtendedCompletionItemKindTheme()
+				?.getIconClassName(completion.kind)
+				?.split(' ')|| CSSIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind));
+			data.iconContainer.classList.add('suggest-icon', ...className);
 		}
 
 		if (completion.tags && completion.tags.indexOf(CompletionItemTag.Deprecated) >= 0) {

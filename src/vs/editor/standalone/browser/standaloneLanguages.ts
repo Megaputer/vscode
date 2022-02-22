@@ -21,6 +21,7 @@ import { MonarchTokenizer } from 'vs/editor/standalone/common/monarch/monarchLex
 import { IMonarchLanguage } from 'vs/editor/standalone/common/monarch/monarchTypes';
 import { IStandaloneThemeService } from 'vs/editor/standalone/common/standaloneTheme';
 import { IMarkerData, IMarkerService } from 'vs/platform/markers/common/markers';
+import {IEditorCompletionService} from "vs/editor/common/services/editorCompletionService";
 
 /**
  * Register information about a new language.
@@ -398,9 +399,19 @@ export function setTokensProvider(languageId: string, provider: TokensProvider |
  * work together with a tokens provider set using `registerDocumentSemanticTokensProvider` or
  * `registerDocumentRangeSemanticTokensProvider`.
  */
-export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>): IDisposable {
+export function setMonarchTokensProvider(
+	languageId: string,
+	languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>,
+	onTokenParsed?: (line: number, startOffset: number, type: string) => void
+): IDisposable {
 	const create = (languageDef: IMonarchLanguage) => {
-		return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, languageDef));
+		return new MonarchTokenizer(
+			StandaloneServices.get(ILanguageService),
+			StandaloneServices.get(IStandaloneThemeService),
+			languageId,
+			compile(languageId, languageDef),
+			onTokenParsed
+		);
 	};
 	if (isThenable<IMonarchLanguage>(languageDef)) {
 		return registerTokensProviderFactory(languageId, { create: () => languageDef });
@@ -619,6 +630,13 @@ export function registerInlayHintsProvider(languageId: string, provider: languag
 }
 
 /**
+ * Register a custom completion list item selection method.
+ */
+export function registerCompletionListItemSelectorMethod(method: languages.CompletionListItemSelectionMethod): void {
+	StandaloneServices.get(IEditorCompletionService).registerCompletionListItemSelectorMethod(method);
+}
+
+/**
  * Contains additional diagnostic information about the context in which
  * a [code action](#CodeActionProvider.provideCodeActions) is run.
  */
@@ -709,6 +727,7 @@ export function createMonacoLanguagesAPI(): typeof monaco.languages {
 		registerDocumentRangeSemanticTokensProvider: <any>registerDocumentRangeSemanticTokensProvider,
 		registerInlineCompletionsProvider: <any>registerInlineCompletionsProvider,
 		registerInlayHintsProvider: <any>registerInlayHintsProvider,
+		registerCompletionListItemSelectorMethod: <any>registerCompletionListItemSelectorMethod,
 
 		// enums
 		DocumentHighlightKind: standaloneEnums.DocumentHighlightKind,

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as assert from 'assert';
 import { Event } from 'vs/base/common/event';
+import { FuzzyScorer } from 'vs/base/common/filters';
 import { DisposableStore } from 'vs/base/common/lifecycle';
 import { URI } from 'vs/base/common/uri';
 import { mock } from 'vs/base/test/common/mock';
@@ -15,11 +16,20 @@ import { Selection } from 'vs/editor/common/core/selection';
 import { Handler } from 'vs/editor/common/editorCommon';
 import { ITextModel } from 'vs/editor/common/model';
 import { TextModel } from 'vs/editor/common/model/textModel';
-import { CompletionItemKind, CompletionItemProvider, CompletionList, CompletionProviderRegistry, CompletionTriggerKind, EncodedTokenizationResult, IState, MetadataConsts, TokenizationRegistry } from 'vs/editor/common/languages';
+import {
+	CompletionItemKind,
+	CompletionItemProvider,
+	CompletionList,
+	CompletionListItemSelectionMethod,
+	CompletionProviderRegistry,
+	CompletionTriggerKind,
+	EncodedTokenizationResult, IState, MetadataConsts, TokenizationRegistry
+} from 'vs/editor/common/languages';
 import { LanguageConfigurationRegistry } from 'vs/editor/common/languages/languageConfigurationRegistry';
 import { NullState } from 'vs/editor/common/languages/nullMode';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorker';
 import { ILanguageService } from 'vs/editor/common/services/language';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/browser/snippetController2';
 import { SuggestController } from 'vs/editor/contrib/suggest/browser/suggestController';
 import { ISuggestMemoryService } from 'vs/editor/contrib/suggest/browser/suggestMemory';
@@ -219,7 +229,19 @@ suite('SuggestModel - TriggerAndCancelOracle', function () {
 				NullTelemetryService,
 				new NullLogService(),
 				new MockContextKeyService(),
-				new TestConfigurationService()
+				new TestConfigurationService(),
+				new class extends mock<IEditorCompletionService>() {
+					override registerCompletionScoreMethod(fuzzyScorer: FuzzyScorer) {
+					}
+					override getScorer() {
+						return undefined;
+					}
+					override(fuzzyScorer: CompletionListItemSelectionMethod) {
+					}
+					override getCompletionListItemSelectorMethod(): CompletionListItemSelectionMethod | undefined {
+						return undefined;
+					}
+				}
 			);
 			disposables.add(oracle);
 			disposables.add(editor);

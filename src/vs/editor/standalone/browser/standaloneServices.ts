@@ -86,6 +86,7 @@ import { MarkerService } from 'vs/platform/markers/common/markerService';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IQuickInputService } from 'vs/platform/quickinput/common/quickInput';
 import { IStorageService, InMemoryStorageService } from 'vs/platform/storage/common/storage';
+import {EditorCompletionServiceImpl, IEditorCompletionService} from "vs/editor/common/services/editorCompletionService";
 
 class SimpleModel implements IResolvedTextEditorModel {
 
@@ -967,6 +968,7 @@ registerSingleton(IOpenerService, OpenerService);
 registerSingleton(IClipboardService, BrowserClipboardService);
 registerSingleton(IContextMenuService, StandaloneContextMenuService);
 registerSingleton(IMenuService, MenuService);
+registerSingleton(IEditorCompletionService, EditorCompletionServiceImpl)
 
 /**
  * We don't want to eagerly instantiate services because embedders get a one time chance

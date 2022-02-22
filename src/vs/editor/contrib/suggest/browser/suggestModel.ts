@@ -15,8 +15,17 @@ import { CursorChangeReason, ICursorSelectionChangedEvent } from 'vs/editor/comm
 import { IPosition, Position } from 'vs/editor/common/core/position';
 import { Selection } from 'vs/editor/common/core/selection';
 import { ITextModel } from 'vs/editor/common/model';
-import { CompletionContext, CompletionItemKind, CompletionItemProvider, CompletionProviderRegistry, CompletionTriggerKind, StandardTokenType } from 'vs/editor/common/languages';
+import {
+	CompletionContext,
+	CompletionItemKind,
+	CompletionItemProvider,
+	CompletionProviderRegistry,
+	CompletionTriggerKind,
+	StandardTokenType,
+	CompletionItem as ModesCompletionItem
+} from 'vs/editor/common/languages';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorker';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/browser/snippetController2';
 import { WordDistance } from 'vs/editor/contrib/suggest/browser/wordDistance';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
@@ -25,7 +34,16 @@ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { ILogService } from 'vs/platform/log/common/log';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { CompletionModel } from './completionModel';
-import { CompletionDurations, CompletionItem, CompletionOptions, getSnippetSuggestSupport, getSuggestionComparator, provideSuggestionItems, SnippetSortOrder } from './suggest';
+import {
+	CompletionDurations,
+	CompletionItem,
+	CompletionOptions,
+	getSnippetSuggestSupport,
+	getSuggestionComparator,
+	provideSuggestionItems,
+	showSimpleSuggestions,
+	SnippetSortOrder
+} from './suggest';
 import { IWordAtPosition } from 'vs/editor/common/core/wordHelper';
 
 export interface ICancelEvent {
@@ -166,6 +184,7 @@ export class SuggestModel implements IDisposable {
 		@ILogService private readonly _logService: ILogService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
+		@IEditorCompletionService private readonly _editorCompletionScoreService: IEditorCompletionService
 	) {
 		this._currentSelection = this._editor.getSelection() || new Selection(1, 1, 1, 1);
 
@@ -534,14 +553,19 @@ export class SuggestModel implements IDisposable {
 			}
 
 			const ctx = new LineContext(model, this._editor.getPosition(), auto, context.shy);
-			this._completionModel = new CompletionModel(items, this._context!.column, {
-				leadingLineContent: ctx.leadingLineContent,
-				characterCountDelta: ctx.column - this._context!.column
-			},
+			this._completionModel = new CompletionModel(
+				items,
+				this._context!.column,
+				{
+					leadingLineContent: ctx.leadingLineContent,
+					characterCountDelta: ctx.column - this._context!.column
+				},
 				wordDistance,
 				this._editor.getOption(EditorOption.suggest),
 				this._editor.getOption(EditorOption.snippetSuggestions),
-				clipboardText
+				clipboardText,
+				this._editorCompletionScoreService.getScorer(),
+				this._editorCompletionScoreService.getCompletionListItemSelectorMethod()
 			);
 
 			// store containers so that they can be disposed later
@@ -553,6 +577,10 @@ export class SuggestModel implements IDisposable {
 			this._reportDurationsTelemetry(completions.durations);
 
 		}).catch(onUnexpectedError);
+	}
+
+	showCompletionItems(items: ModesCompletionItem[]) {
+		showSimpleSuggestions(this._editor, items);
 	}
 
 	private _telemetryGate: number = 0;
@@ -702,6 +730,14 @@ export class SuggestModel implements IDisposable {
 
 				} else {
 					// nothing left
+					this.cancel();
+					return;
+				}
+			}
+
+			if (this._context.auto) {
+				const content = this._context.leadingLineContent;
+				if (content.match(/\s$/)) {
 					this.cancel();
 					return;
 				}

@@ -7,7 +7,7 @@ import * as DOM from 'vs/base/browser/dom';
 import * as dompurify from 'vs/base/browser/dompurify/dompurify';
 import { DomEmitter } from 'vs/base/browser/event';
 import { createElement, FormattedTextRenderOptions } from 'vs/base/browser/formattedTextRenderer';
-import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
+import { IMouseEvent, StandardMouseEvent } from 'vs/base/browser/mouseEvent';
 import { renderLabelWithIcons } from 'vs/base/browser/ui/iconLabel/iconLabels';
 import { raceCancellation } from 'vs/base/common/async';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
@@ -29,10 +29,20 @@ export interface MarkedOptions extends marked.MarkedOptions {
 	baseUrl?: never;
 }
 
+type ConfigModifier = (original: string[]) => string[];
+
+export interface SanitizerConfig {
+	allowedTagsModifier?: ConfigModifier;
+	allowedAttributesModifier?: ConfigModifier;
+}
+
 export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
 	codeBlockRenderer?: (languageId: string, value: string) => Promise<HTMLElement>;
+	headingBlockRenderer?: (text: string, level: number, raw: string) => string
 	asyncRenderCallback?: () => void;
 	baseUrl?: URI;
+	sanitizerConfig?: SanitizerConfig;
+	onClickHandler?: (content: string, event?: IMouseEvent) => boolean;
 }
 
 /**
@@ -41,7 +51,11 @@ export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
  * **Note** that for most cases you should be using [`MarkdownRenderer`](./src/vs/editor/browser/core/markdownRenderer.ts)
  * which comes with support for pretty code block rendering and which uses the default way of handling links.
  */
-export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRenderOptions = {}, markedOptions: MarkedOptions = {}): { element: HTMLElement, dispose: () => void } {
+export function renderMarkdown(
+	markdown: IMarkdownString,
+	options: MarkdownRenderOptions = {},
+	markedOptions: MarkedOptions = {}
+): { element: HTMLElement, dispose: () => void } {
 	const disposables = new DisposableStore();
 	let isDisposed = false;
 
@@ -189,6 +203,10 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		};
 	}
 
+	if (options.headingBlockRenderer) {
+		renderer.heading = options.headingBlockRenderer;
+	}
+
 	if (options.actionHandler) {
 		const onClick = options.actionHandler.disposables.add(new DomEmitter(element, 'click'));
 		const onAuxClick = options.actionHandler.disposables.add(new DomEmitter(element, 'auxclick'));
@@ -198,14 +216,19 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 				return;
 			}
 
-			let target: HTMLElement | null = mouseEvent.target;
-			if (target.tagName !== 'A') {
-				target = target.parentElement;
-				if (!target || target.tagName !== 'A') {
+			try {
+				if (options.onClickHandler?.('', mouseEvent)) {
 					return;
 				}
-			}
-			try {
+
+				let target: HTMLElement | null = mouseEvent.target;
+				if (target.tagName !== 'A') {
+					target = target.parentElement;
+					if (!target || target.tagName !== 'A') {
+						return;
+					}
+				}
+
 				const href = target.dataset['href'];
 				if (href) {
 					options.actionHandler!.callback(href, mouseEvent);
@@ -230,7 +253,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 			const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
 			return match ? html : '';
 		};
-		markedOptions.sanitize = true;
+		markedOptions.sanitize = false;
 		markedOptions.silent = true;
 	}
 
@@ -254,8 +277,10 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		renderedMarkdown = elements.map(e => typeof e === 'string' ? e : e.outerHTML).join('');
 	}
 
+	const sanitizerOptions = { ...markdown, ...options.sanitizerConfig };
+	element.innerHTML = sanitizeRenderedMarkdown(sanitizerOptions, renderedMarkdown) as unknown as string;
 	const htmlParser = new DOMParser();
-	const markdownHtmlDoc = htmlParser.parseFromString(sanitizeRenderedMarkdown(markdown, renderedMarkdown) as unknown as string, 'text/html');
+	const markdownHtmlDoc = htmlParser.parseFromString(sanitizeRenderedMarkdown(sanitizerOptions, renderedMarkdown) as unknown as string, 'text/html');
 
 	markdownHtmlDoc.body.querySelectorAll('img')
 		.forEach(img => {
@@ -273,7 +298,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 			}
 		});
 
-	element.innerHTML = sanitizeRenderedMarkdown(markdown, markdownHtmlDoc.body.innerHTML) as unknown as string;
+	element.innerHTML = sanitizeRenderedMarkdown(sanitizerOptions, markdownHtmlDoc.body.innerHTML) as unknown as string;
 
 	// signal that async code blocks can be now be inserted
 	signalInnerHTML!();
@@ -299,25 +324,10 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 }
 
 function sanitizeRenderedMarkdown(
-	options: { isTrusted?: boolean },
+	options: { isTrusted?: boolean } & SanitizerConfig,
 	renderedMarkdown: string,
 ): TrustedHTML {
 	const { config, allowedSchemes } = getSanitizerOptions(options);
-	dompurify.addHook('uponSanitizeAttribute', (element, e) => {
-		if (e.attrName === 'style' || e.attrName === 'class') {
-			if (element.tagName === 'SPAN') {
-				if (e.attrName === 'style') {
-					e.keepAttr = /^(color\:#[0-9a-fA-F]+;)?(background-color\:#[0-9a-fA-F]+;)?$/.test(e.attrValue);
-					return;
-				} else if (e.attrName === 'class') {
-					e.keepAttr = /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/.test(e.attrValue);
-					return;
-				}
-			}
-			e.keepAttr = false;
-			return;
-		}
-	});
 
 	// build an anchor to map URLs to
 	const anchor = document.createElement('a');
@@ -338,12 +348,11 @@ function sanitizeRenderedMarkdown(
 	try {
 		return dompurify.sanitize(renderedMarkdown, { ...config, RETURN_TRUSTED_TYPE: true });
 	} finally {
-		dompurify.removeHook('uponSanitizeAttribute');
 		dompurify.removeHook('afterSanitizeAttributes');
 	}
 }
 
-function getSanitizerOptions(options: { readonly isTrusted?: boolean }): { config: dompurify.Config, allowedSchemes: string[] } {
+function getSanitizerOptions(options: { readonly isTrusted?: boolean } & SanitizerConfig): { config: dompurify.Config, allowedSchemes: string[] } {
 	const allowedSchemes = [
 		Schemas.http,
 		Schemas.https,
@@ -358,15 +367,16 @@ function getSanitizerOptions(options: { readonly isTrusted?: boolean }): { confi
 	if (options.isTrusted) {
 		allowedSchemes.push(Schemas.command);
 	}
-
+	const ALLOWED_TAGS = ['ul', 'li', 'p', 'b', 'i', 'code', 'blockquote', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'em', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'del', 'a', 'strong', 'br', 'img', 'span', 'col'];
+	const ALLOWED_ATTR = ['href', 'data-href', 'target', 'title', 'src', 'alt', 'class', 'style', 'data-code', 'width', 'height', 'align', 'id', 'rowspan', 'colspan'];
 	return {
 		config: {
 			// allowedTags should included everything that markdown renders to.
 			// Since we have our own sanitize function for marked, it's possible we missed some tag so let dompurify make sure.
 			// HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
 			// HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-			ALLOWED_TAGS: ['ul', 'li', 'p', 'b', 'i', 'code', 'blockquote', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'em', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'del', 'a', 'strong', 'br', 'img', 'span'],
-			ALLOWED_ATTR: ['href', 'data-href', 'target', 'title', 'src', 'alt', 'class', 'style', 'data-code', 'width', 'height', 'align'],
+			ALLOWED_TAGS: options.allowedTagsModifier ? options.allowedTagsModifier(ALLOWED_TAGS) : ALLOWED_TAGS,
+			ALLOWED_ATTR: options.allowedAttributesModifier ? options.allowedAttributesModifier(ALLOWED_ATTR) : ALLOWED_ATTR,
 			ALLOW_UNKNOWN_PROTOCOLS: true,
 		},
 		allowedSchemes

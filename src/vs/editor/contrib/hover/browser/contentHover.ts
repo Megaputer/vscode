@@ -32,16 +32,19 @@ import { UnicodeHighlighterHoverParticipant } from 'vs/editor/contrib/unicodeHig
 import { AsyncIterableObject } from 'vs/base/common/async';
 import { InlayHintsHover } from 'vs/editor/contrib/inlayHints/browser/inlayHintsHover';
 import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
-import { Emitter } from 'vs/base/common/event';
+import {Emitter, Event} from 'vs/base/common/event';
 import { IModelDecorationsChangedEvent } from 'vs/editor/common/textModelEvents';
+import {MarkdownRenderOptions} from "vs/base/browser/markdownRenderer";
 
 const $ = dom.$;
 
 export class ContentHoverController extends Disposable {
 
+	private readonly _markdownHoverParticipant = this._instantiationService.createInstance(MarkdownHoverParticipant, this._editor);
+
 	private readonly _participants: IEditorHoverParticipant[] = [
 		this._instantiationService.createInstance(ColorHoverParticipant, this._editor),
-		this._instantiationService.createInstance(MarkdownHoverParticipant, this._editor),
+		this._markdownHoverParticipant,
 		this._instantiationService.createInstance(InlineCompletionsHoverParticipant, this._editor),
 		this._instantiationService.createInstance(UnicodeHighlighterHoverParticipant, this._editor),
 		this._instantiationService.createInstance(MarkerHoverParticipant, this._editor),
@@ -92,6 +95,19 @@ export class ContentHoverController extends Disposable {
 				this._hoverOperation.start(HoverStartMode.Delayed);
 			}
 		}
+	}
+
+
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownHoverParticipant.setMarkdownRendererOptions(options);
+	}
+
+	public onDidContentsChanged(listener: (element: HTMLElement) => void) {
+		this._widget.onDidContentsChanged(listener);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._computer.anchor?.range;
 	}
 
 	public maybeShowAt(mouseEvent: IEditorMouseEvent): boolean {
@@ -320,6 +336,9 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 
 	private _visibleData: ContentHoverVisibleData | null = null;
 
+	protected readonly _onDidContentsChanged: Emitter<HTMLElement> = this._register(new Emitter<HTMLElement>());
+	public readonly onDidContentsChanged: Event<HTMLElement> = this._onDidContentsChanged.event;
+
 	/**
 	 * Returns `null` if the hover is not visible.
 	 */
@@ -453,6 +472,7 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire(this.getDomNode());
 
 		const scrollDimensions = this._hover.scrollbar.getScrollDimensions();
 		const hasHorizontalScrollbar = (scrollDimensions.scrollWidth > scrollDimensions.width);
@@ -463,6 +483,7 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 				this._hover.contentsDomNode.style.paddingBottom = extraBottomPadding;
 				this._editor.layoutContentWidget(this);
 				this._hover.onContentsChanged();
+				this._onDidContentsChanged.fire(this.getDomNode());
 			}
 		}
 	}

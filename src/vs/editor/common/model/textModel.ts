@@ -254,6 +254,12 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 	public onDidChangeContent(listener: (e: IModelContentChangedEvent) => void): IDisposable {
 		return this._eventEmitter.slowEvent((e: InternalModelContentChangeEvent) => listener(e.contentChangedEvent));
 	}
+
+	private readonly _onDidChangeTokenizationState: Emitter<boolean> = this._register(new Emitter<boolean>());
+	public readonly onDidChangeTokenizationState: Event<boolean> = this._onDidChangeTokenizationState.event;
+	public fireOnDidChangeTokenizationState(started: boolean) {
+		this._onDidChangeTokenizationState.fire(started);
+	}
 	//#endregion
 
 	public readonly id: string;
@@ -2004,6 +2010,7 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 			}
 		}
 		this.handleTokenizationProgress(backgroundTokenizationCompleted);
+		backgroundTokenizationCompleted && this._onDidChangeTokenizationState.fire(false);
 	}
 
 	public setSemanticTokens(tokens: SparseMultilineTokens[] | null, isComplete: boolean): void {
@@ -2235,6 +2242,10 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 	public getLineIndentColumn(lineNumber: number): number {
 		// Columns start with 1.
 		return indentOfLine(this.getLineContent(lineNumber)) + 1;
+	}
+
+	setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenization.setTokenizationInfoEmitterLineIndex(index);
 	}
 }
 

@@ -16,7 +16,13 @@ import { IStandaloneTheme, IStandaloneThemeData, IStandaloneThemeService } from 
 import { UnthemedProductIconTheme } from 'vs/platform/theme/browser/iconsStyleSheet';
 import { ColorIdentifier } from 'vs/platform/theme/common/colorRegistry';
 import { ColorScheme } from 'vs/platform/theme/common/theme';
-import { IFileIconTheme, IColorTheme, ITokenStyle, IProductIconTheme } from 'vs/platform/theme/common/themeService';
+import {
+	IFileIconTheme,
+	IColorTheme,
+	ITokenStyle,
+	IProductIconTheme,
+	IExtendedCompletionItemKindTheme
+} from 'vs/platform/theme/common/themeService';
 
 suite('TokenizationSupport2Adapter', () => {
 
@@ -92,6 +98,12 @@ suite('TokenizationSupport2Adapter', () => {
 		public readonly onDidColorThemeChange = new Emitter<IColorTheme>().event;
 		public readonly onDidFileIconThemeChange = new Emitter<IFileIconTheme>().event;
 		public readonly onDidProductIconThemeChange = new Emitter<IProductIconTheme>().event;
+
+		getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined {
+			return undefined;
+		}
+		registerExtendedCompletionItemKinds(items: Map<number, string>) {
+		}
 	}
 
 	class MockState implements IState {

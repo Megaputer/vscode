@@ -13,7 +13,15 @@ import { hc_black, vs, vs_dark } from 'vs/editor/standalone/common/themes';
 import { IEnvironmentService } from 'vs/platform/environment/common/environment';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { asCssVariableName, ColorIdentifier, Extensions, IColorRegistry } from 'vs/platform/theme/common/colorRegistry';
-import { Extensions as ThemingExtensions, ICssStyleCollector, IFileIconTheme, IProductIconTheme, IThemingRegistry, ITokenStyle } from 'vs/platform/theme/common/themeService';
+import {
+	IExtendedCompletionItemKindTheme,
+	Extensions as ThemingExtensions,
+	ICssStyleCollector,
+	IFileIconTheme,
+	IProductIconTheme,
+	IThemingRegistry,
+	ITokenStyle
+} from 'vs/platform/theme/common/themeService';
 import { IDisposable, Disposable } from 'vs/base/common/lifecycle';
 import { ColorScheme } from 'vs/platform/theme/common/theme';
 import { getIconsStyleSheet, UnthemedProductIconTheme } from 'vs/platform/theme/browser/iconsStyleSheet';
@@ -176,6 +184,23 @@ class StandaloneTheme implements IStandaloneTheme {
 	public readonly semanticHighlighting = false;
 }
 
+class ExtendedCompletionItemKindTheme implements IExtendedCompletionItemKindTheme {
+	private icons = new Map<number, string>();
+
+	getIconClassName(completionItemKind: number): string | undefined {
+		return this.icons.get(completionItemKind);
+	}
+
+	registerExtendedCompletionItemKind(items: Map<number, string>) {
+		items.forEach((className, kind) => {
+			if (kind <= 27) {
+				throw new Error(`CompletionItemKind error: cannot assign new icon for CompletionItemKind(${kind})`);
+			}
+			this.icons.set(kind, className);
+		});
+	}
+}
+
 function isBuiltinTheme(themeName: string): themeName is BuiltinTheme {
 	return (
 		themeName === VS_THEME_NAME
@@ -224,6 +249,7 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 	private _colorMapOverride: Color[] | null;
 	private _desiredTheme!: IStandaloneTheme;
 	private _theme!: IStandaloneTheme;
+	private _extendedCompletionItemKindTheme: ExtendedCompletionItemKindTheme;
 
 	private _builtInProductIconTheme = new UnthemedProductIconTheme();
 
@@ -246,6 +272,7 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 		this._styleElements = [];
 		this._colorMapOverride = null;
 		this.setTheme(VS_THEME_NAME);
+		this._extendedCompletionItemKindTheme = new ExtendedCompletionItemKindTheme();
 
 		iconsStyleSheet.onDidChange(() => {
 			this._codiconCSS = iconsStyleSheet.getCSS();
@@ -255,6 +282,14 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 		dom.addMatchMediaChangeListener('(forced-colors: active)', () => {
 			this._updateActualTheme();
 		});
+	}
+
+	getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined {
+        return this._extendedCompletionItemKindTheme;
+    }
+
+	registerExtendedCompletionItemKinds(items: Map<number, string>) {
+		this._extendedCompletionItemKindTheme.registerExtendedCompletionItemKind(items);
 	}
 
 	public registerEditorContainer(domNode: HTMLElement): IDisposable {

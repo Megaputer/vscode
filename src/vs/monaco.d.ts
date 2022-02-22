@@ -461,6 +461,16 @@ declare namespace monaco {
 		stopPropagation(): void;
 	}
 
+	export interface IMouseWheelEvent extends MouseEvent {
+		readonly wheelDelta: number;
+		readonly wheelDeltaX: number;
+		readonly wheelDeltaY: number;
+		readonly deltaX: number;
+		readonly deltaY: number;
+		readonly deltaZ: number;
+		readonly deltaMode: number;
+	}
+
 	export interface IScrollEvent {
 		readonly scrollTop: number;
 		readonly scrollLeft: number;
@@ -994,6 +1004,11 @@ declare namespace monaco.editor {
 	export function defineTheme(themeName: string, themeData: IStandaloneThemeData): void;
 
 	/**
+	 * Define a new completion item kinds.
+	 */
+	export function defineExtendedCompletionItemKinds(completionItemKinds: Map<number, string>): void;
+
+	/**
 	 * Switches to a theme.
 	 */
 	export function setTheme(themeName: string): void;
@@ -1007,6 +1022,11 @@ declare namespace monaco.editor {
 	 * Register a command.
 	 */
 	export function registerCommand(id: string, handler: (accessor: any, ...args: any[]) => void): IDisposable;
+
+	/**
+	 * Register a custom completion score method.
+	 */
+	export function registerCompletionScoreMethod(scorer: FuzzyScorer): void;
 
 	export type BuiltinTheme = 'vs' | 'vs-dark' | 'hc-black';
 
@@ -1345,6 +1365,21 @@ declare namespace monaco.editor {
 		Auto = 1,
 		Hidden = 2,
 		Visible = 3
+	}
+
+	/**
+	 * An array representing a fuzzy match.
+	 *
+	 * 0. the score
+	 * 1. the offset at which matching started
+	 * 2. `<match_pos_N>`
+	 * 3. `<match_pos_1>`
+	 * 4. `<match_pos_0>` etc
+	 */
+	export type FuzzyScore = [score: number, wordStart: number, ...matches: number[]];
+
+	export interface FuzzyScorer {
+		(pattern: string, lowPattern: string, patternPos: number, word: string, lowWord: string, wordPos: number, firstMatchCanBeWeak: boolean): FuzzyScore | undefined;
 	}
 
 	export interface ThemeColor {
@@ -2045,10 +2080,33 @@ declare namespace monaco.editor {
 		 */
 		setEOL(eol: EndOfLineSequence): void;
 		/**
+		 * Undo edit operations until the previous undo/redo point.
+		 * The inverse edit operations will be pushed on the redo stack.
+		 */
+		undo(): void | Promise<void>;
+		/**
+		 * Is there anything in the undo stack?
+		 */
+		canUndo(): boolean;
+		/**
+		 * Redo edit operations until the next undo/redo point.
+		 * The inverse edit operations will be pushed on the undo stack.
+		 */
+		redo(): void | Promise<void>;
+		/**
+		 * Is there anything in the redo stack?
+		 */
+		canRedo(): boolean;
+		/**
 		 * An event emitted when the contents of the model have changed.
 		 * @event
 		 */
 		onDidChangeContent(listener: (e: IModelContentChangedEvent) => void): IDisposable;
+		/**
+		 * An event emitted when the contents of the model have changed fast.
+		 * @event
+		 */
+		onDidChangeContentFast(listener: (e: IModelContentChangedEvent) => void): IDisposable;
 		/**
 		 * An event emitted when decorations of the model have changed.
 		 * @event
@@ -2069,6 +2127,16 @@ declare namespace monaco.editor {
 		 * @event
 		 */
 		readonly onDidChangeLanguageConfiguration: IEvent<IModelLanguageConfigurationChangedEvent>;
+		/**
+		 * An event emitted when the tokens associated with the model have changed.
+		 * @event
+		 */
+		readonly onDidChangeTokens: IEvent<IModelTokensChangedEvent>;
+		/**
+		 * An event emitted when the tokenization started or finished
+		 * @event
+		 */
+		onDidChangeTokenizationState(listener: (started: boolean) => void): IDisposable;
 		/**
 		 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 		 * @event
@@ -2597,6 +2665,24 @@ declare namespace monaco.editor {
 	export interface IModelDecorationsChangedEvent {
 		readonly affectsMinimap: boolean;
 		readonly affectsOverviewRuler: boolean;
+	}
+
+	/**
+	 * An event describing that some ranges of lines have been tokenized (their tokens have changed).
+	 */
+	export interface IModelTokensChangedEvent {
+		readonly tokenizationSupportChanged: boolean;
+		readonly semanticTokensApplied: boolean;
+		readonly ranges: {
+			/**
+			 * The start of the range (inclusive)
+			 */
+			readonly fromLineNumber: number;
+			/**
+			 * The end of the range (inclusive)
+			 */
+			readonly toLineNumber: number;
+		}[];
 	}
 
 	export interface IModelOptionsChangedEvent {
@@ -3569,6 +3655,11 @@ declare namespace monaco.editor {
 		 * Defaults to false.
 		 */
 		above?: boolean;
+		/**
+		 * Max width of the hover widget.
+		 * Defaults to 500.
+		 */
+		maxWidth?: number;
 	}
 
 	/**
@@ -5006,6 +5097,11 @@ declare namespace monaco.editor {
 		 */
 		readonly onMouseLeave: IEvent<IPartialEditorMouseEvent>;
 		/**
+		 * An event emitted on a "mousewheel"
+		 * @event
+		 */
+		readonly onMouseWheel: IEvent<IMouseWheelEvent>;
+		/**
 		 * An event emitted on a "keyup".
 		 * @event
 		 */
@@ -5514,7 +5610,7 @@ declare namespace monaco.languages {
 	 * work together with a tokens provider set using `registerDocumentSemanticTokensProvider` or
 	 * `registerDocumentRangeSemanticTokensProvider`.
 	 */
-	export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>): IDisposable;
+	export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable;
 
 	/**
 	 * Register a reference provider (used by e.g. reference search).
@@ -5648,6 +5744,11 @@ declare namespace monaco.languages {
 	 * Register an inlay hints provider.
 	 */
 	export function registerInlayHintsProvider(languageId: string, provider: InlayHintsProvider): IDisposable;
+
+	/**
+	 * Register a custom completion list item selection method.
+	 */
+	export function registerCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void;
 
 	/**
 	 * Contains additional diagnostic information about the context in which
@@ -6038,7 +6139,7 @@ declare namespace monaco.languages {
 		 * The kind of this completion item. Based on the kind
 		 * an icon is chosen by the editor.
 		 */
-		kind: CompletionItemKind;
+		kind: CompletionItemKind | number;
 		/**
 		 * A modifier to the `kind` which affect how the item
 		 * is rendered, e.g. Deprecated is rendered with a strikeout
@@ -6114,6 +6215,13 @@ declare namespace monaco.languages {
 		incomplete?: boolean;
 		dispose?(): void;
 	}
+
+	export type CompletionItemInfo = {
+		completion: CompletionItem;
+		word?: string;
+	};
+
+	export type CompletionListItemSelectionMethod = (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
 
 	/**
 	 * How a suggest provider was triggered.

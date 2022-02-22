@@ -252,6 +252,7 @@ export class TextModelTokenization extends Disposable {
 				return;
 			}
 
+			this._textModel.fireOnDidChangeTokenizationState(true);
 			this._backgroundTokenizeForAtLeast1ms();
 
 			if (Date.now() < endTime) {
@@ -393,6 +394,10 @@ export class TextModelTokenization extends Disposable {
 		return false;
 	}
 
+	public setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenizationStateStore?.tokenizationSupport.setLineIndex?.(index);
+	}
+
 	private _hasLinesToTokenize(): boolean {
 		if (!this._tokenizationStateStore) {
 			return false;
@@ -422,6 +427,7 @@ export class TextModelTokenization extends Disposable {
 			const text = this._textModel.getLineContent(lineIndex + 1);
 			const lineStartState = this._tokenizationStateStore.getBeginState(lineIndex);
 
+			this._tokenizationStateStore?.tokenizationSupport.setLineIndex?.(lineIndex);
 			const r = safeTokenize(this._languageIdCodec, languageId, this._tokenizationStateStore.tokenizationSupport, text, true, lineStartState!);
 			builder.add(lineIndex + 1, r.tokens);
 			this._tokenizationStateStore.setEndState(linesLength, lineIndex, r.endState);

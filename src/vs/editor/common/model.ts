@@ -1135,26 +1135,22 @@ export interface ITextModel {
 	/**
 	 * Undo edit operations until the previous undo/redo point.
 	 * The inverse edit operations will be pushed on the redo stack.
-	 * @internal
 	 */
 	undo(): void | Promise<void>;
 
 	/**
 	 * Is there anything in the undo stack?
-	 * @internal
 	 */
 	canUndo(): boolean;
 
 	/**
 	 * Redo edit operations until the next undo/redo point.
 	 * The inverse edit operations will be pushed on the undo stack.
-	 * @internal
 	 */
 	redo(): void | Promise<void>;
 
 	/**
 	 * Is there anything in the redo stack?
-	 * @internal
 	 */
 	canRedo(): boolean;
 
@@ -1178,6 +1174,11 @@ export interface ITextModel {
 	 */
 	onDidChangeContent(listener: (e: IModelContentChangedEvent) => void): IDisposable;
 	/**
+	 * An event emitted when the contents of the model have changed fast.
+	 * @event
+	 */
+	onDidChangeContentFast(listener: (e: IModelContentChangedEvent) => void): IDisposable;
+	/**
 	 * An event emitted when decorations of the model have changed.
 	 * @event
 	 */
@@ -1200,9 +1201,13 @@ export interface ITextModel {
 	/**
 	 * An event emitted when the tokens associated with the model have changed.
 	 * @event
-	 * @internal
 	 */
 	readonly onDidChangeTokens: Event<IModelTokensChangedEvent>;
+	/**
+	 * An event emitted when the tokenization started or finished
+	 * @event
+	 */
+	onDidChangeTokenizationState(listener: (started: boolean) => void): IDisposable;
 	/**
 	 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 	 * @event

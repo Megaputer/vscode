@@ -108,6 +108,10 @@ export interface ITokenStyle {
 	readonly italic: boolean | undefined;
 }
 
+export interface IExtendedCompletionItemKindTheme {
+	getIconClassName(completionItemKind: number): string | undefined;
+}
+
 export interface IColorTheme {
 
 	readonly type: ColorScheme;
@@ -183,6 +187,7 @@ export interface IThemeService {
 
 	readonly onDidProductIconThemeChange: Event<IProductIconTheme>;
 
+	getExtendedCompletionItemKindTheme(): IExtendedCompletionItemKindTheme | undefined;
 }
 
 // static theming participant

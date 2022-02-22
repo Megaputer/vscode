@@ -233,6 +233,12 @@ interface IMonarchTokensCollector {
 	nestedLanguageTokenize(embeddedLanguageLine: string, hasEOL: boolean, embeddedLanguageData: EmbeddedLanguageData, offsetDelta: number): languages.IState;
 }
 
+export type TokensCollectorEmitListener = (line: number, offset: number, type: string) => void;
+export interface TokenInfoEmitter {
+	emit(offset: number, type: string): void;
+	getLineIndex(): number;
+}
+
 class MonarchClassicTokensCollector implements IMonarchTokensCollector {
 
 	private _tokens: languages.Token[];
@@ -298,14 +304,16 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 	private _tokens: number[];
 	private _currentLanguageId: languages.LanguageId;
 	private _lastTokenMetadata: number;
+	private _emitter?: TokenInfoEmitter;
 
-	constructor(languageService: ILanguageService, theme: TokenTheme) {
+	constructor(languageService: ILanguageService, theme: TokenTheme, emitter?: TokenInfoEmitter) {
 		this._languageService = languageService;
 		this._theme = theme;
 		this._prependTokens = null;
 		this._tokens = [];
 		this._currentLanguageId = languages.LanguageId.Null;
 		this._lastTokenMetadata = 0;
+		this._emitter = emitter;
 	}
 
 	public enterLanguage(languageId: string): void {
@@ -313,6 +321,7 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 	}
 
 	public emit(startOffset: number, type: string): void {
+		this._emitter?.emit(startOffset, type);
 		const metadata = this._theme.match(this._currentLanguageId, type);
 		if (this._lastTokenMetadata === metadata) {
 			return;
@@ -361,6 +370,7 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 			return embeddedModeState;
 		}
 
+		this._emitter && nestedLanguageTokenizationSupport.setLineIndex?.(this._emitter.getLineIndex());
 		const nestedResult = nestedLanguageTokenizationSupport.tokenizeEncoded(embeddedLanguageLine, hasEOL, embeddedModeState);
 		if (offsetDelta !== 0) {
 			for (let i = 0, len = nestedResult.tokens.length; i < len; i += 2) {
@@ -385,6 +395,26 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 
 export type ILoadStatus = { loaded: true; } | { loaded: false; promise: Promise<void>; };
 
+class ParsedTokenInfoEmitter implements TokenInfoEmitter {
+	private line = -1;
+
+	constructor(private listener: TokensCollectorEmitListener) {}
+
+	setLine(line: number) {
+		this.line = line;
+	}
+
+	emit(offset: number, type: string): void {
+		if (this.line >= 0) {
+			this.listener(this.line, offset, type);
+		}
+	}
+
+	getLineIndex(): number {
+		return this.line;
+	}
+}
+
 export class MonarchTokenizer implements languages.ITokenizationSupport {
 
 	private readonly _languageService: ILanguageService;
@@ -394,14 +424,18 @@ export class MonarchTokenizer implements languages.ITokenizationSupport {
 	private readonly _embeddedLanguages: { [languageId: string]: boolean; };
 	public embeddedLoaded: Promise<void>;
 	private readonly _tokenizationRegistryListener: IDisposable;
+	private readonly _onTokenParsedEmitter?: ParsedTokenInfoEmitter;
 
-	constructor(languageService: ILanguageService, standaloneThemeService: IStandaloneThemeService, languageId: string, lexer: monarchCommon.ILexer) {
+	constructor(languageService: ILanguageService, standaloneThemeService: IStandaloneThemeService, languageId: string, lexer: monarchCommon.ILexer, onTokenParsed?: TokensCollectorEmitListener) {
 		this._languageService = languageService;
 		this._standaloneThemeService = standaloneThemeService;
 		this._languageId = languageId;
 		this._lexer = lexer;
 		this._embeddedLanguages = Object.create(null);
 		this.embeddedLoaded = Promise.resolve(undefined);
+		if (onTokenParsed) {
+			this._onTokenParsedEmitter = new ParsedTokenInfoEmitter(onTokenParsed);
+		}
 
 		// Set up listening for embedded modes
 		let emitting = false;
@@ -473,9 +507,17 @@ export class MonarchTokenizer implements languages.ITokenizationSupport {
 	}
 
 	public tokenizeEncoded(line: string, hasEOL: boolean, lineState: languages.IState): languages.EncodedTokenizationResult {
-		const tokensCollector = new MonarchModernTokensCollector(this._languageService, this._standaloneThemeService.getColorTheme().tokenTheme);
+		const tokensCollector = new MonarchModernTokensCollector(
+			this._languageService,
+			this._standaloneThemeService.getColorTheme().tokenTheme,
+			this._onTokenParsedEmitter
+		);
 		const endLineState = this._tokenize(line, hasEOL, <MonarchLineState>lineState, tokensCollector);
 		return tokensCollector.finalize(endLineState);
+	}
+
+	public setLineIndex(index: number) {
+		this._onTokenParsedEmitter?.setLine(index);
 	}
 
 	private _tokenize(line: string, hasEOL: boolean, lineState: MonarchLineState, collector: IMonarchTokensCollector): MonarchLineState {
