@@ -245,6 +245,12 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 	private readonly _onDidChangeInjectedText: Emitter<ModelInjectedTextChangedEvent> = this._register(new Emitter<ModelInjectedTextChangedEvent>());
 
 	private readonly _eventEmitter: DidChangeContentEmitter = this._register(new DidChangeContentEmitter());
+	public onDidChangeRawContent(listener: (e: ModelRawContentChangedEvent) => void): IDisposable {
+		return this._eventEmitter.slowEvent((e: InternalModelContentChangeEvent) => listener(e.rawContentChangedEvent));
+	}
+	public onDidChangeContentFast(listener: (e: IModelContentChangedEvent) => void): IDisposable {
+		return this._eventEmitter.fastEvent((e: InternalModelContentChangeEvent) => listener(e.contentChangedEvent));
+	}
 	public onDidChangeContent(listener: (e: IModelContentChangedEvent) => void): IDisposable {
 		return this._eventEmitter.slowEvent((e: InternalModelContentChangeEvent) => listener(e.contentChangedEvent));
 	}
@@ -253,6 +259,12 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 			this._eventEmitter.fastEvent(e => listener(e)),
 			this._onDidChangeInjectedText.event(e => listener(e))
 		);
+	}
+
+	private readonly _onDidChangeTokenizationState: Emitter<boolean> = this._register(new Emitter<boolean>());
+	public readonly onDidChangeTokenizationState: Event<boolean> = this._onDidChangeTokenizationState.event;
+	public fireOnDidChangeTokenizationState(started: boolean) {
+		this._onDidChangeTokenizationState.fire(started);
 	}
 	//#endregion
 
@@ -2218,10 +2230,14 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 	/**
 	 * Gets the column at which indentation stops at a given line.
 	 * @internal
-	*/
+	 */
 	public getLineIndentColumn(lineNumber: number): number {
 		// Columns start with 1.
 		return indentOfLine(this.getLineContent(lineNumber)) + 1;
+	}
+
+	setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenization.setTokenizationInfoEmitterLineIndex(index);
 	}
 }
 

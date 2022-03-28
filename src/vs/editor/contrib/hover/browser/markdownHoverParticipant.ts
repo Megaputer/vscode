@@ -9,6 +9,7 @@ import { AsyncIterableObject } from 'vs/base/common/async';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { IMarkdownString, isEmptyMarkdownString, MarkdownString } from 'vs/base/common/htmlContent';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { MarkdownRenderer } from 'vs/editor/contrib/markdownRenderer/browser/markdownRenderer';
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
 import { Position } from 'vs/editor/common/core/position';
@@ -43,6 +44,7 @@ export class MarkdownHover implements IHoverPart {
 }
 
 export class MarkdownHoverParticipant implements IEditorHoverParticipant<MarkdownHover> {
+	private _markdownRendererOptions?: MarkdownRenderOptions;
 
 	public readonly hoverOrdinal: number = 2;
 
@@ -117,8 +119,16 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 			});
 	}
 
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownRendererOptions = options;
+	}
+
 	public renderHoverParts(context: IEditorHoverRenderContext, hoverParts: MarkdownHover[]): IDisposable {
-		return renderMarkdownHovers(context, hoverParts, this._editor, this._languageService, this._openerService);
+		return renderMarkdownHovers(
+			context, hoverParts, this._editor, this._languageService,
+			this._openerService,
+			this._markdownRendererOptions
+		);
 	}
 }
 
@@ -128,6 +138,7 @@ export function renderMarkdownHovers(
 	editor: ICodeEditor,
 	languageService: ILanguageService,
 	openerService: IOpenerService,
+	markdownRendererOptions?: MarkdownRenderOptions,
 ): IDisposable {
 
 	// Sort hover parts to keep them stable since they might come in async, out-of-order
@@ -146,7 +157,7 @@ export function renderMarkdownHovers(
 				hoverContentsElement.className = 'hover-contents code-hover-contents';
 				context.onContentsChanged();
 			}));
-			const renderedContents = disposables.add(renderer.render(contents));
+			const renderedContents = disposables.add(renderer.render(contents, markdownRendererOptions));
 			hoverContentsElement.appendChild(renderedContents.element);
 			context.fragment.appendChild(markdownHoverElement);
 		}

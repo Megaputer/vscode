@@ -8,7 +8,7 @@ import { CharCode } from 'vs/base/common/charCode';
 import { anyScore, fuzzyScore, FuzzyScore, fuzzyScoreGracefulAggressive, FuzzyScorer } from 'vs/base/common/filters';
 import { compareIgnoreCase } from 'vs/base/common/strings';
 import { InternalSuggestOptions } from 'vs/editor/common/config/editorOptions';
-import { CompletionItemKind, CompletionItemProvider } from 'vs/editor/common/languages';
+import { CompletionItemKind, CompletionItemProvider, CompletionListItemSelectionMethod } from 'vs/editor/common/languages';
 import { WordDistance } from 'vs/editor/contrib/suggest/browser/wordDistance';
 import { CompletionItem } from './suggest';
 
@@ -55,7 +55,9 @@ export class CompletionModel {
 		wordDistance: WordDistance,
 		options: InternalSuggestOptions,
 		snippetSuggestions: 'top' | 'bottom' | 'inline' | 'none',
-		readonly clipboardText: string | undefined
+		readonly clipboardText: string | undefined,
+		private _customScoreMethod?: FuzzyScorer,
+		readonly customCompletionListItemSelectorMethod?: CompletionListItemSelectionMethod
 	) {
 		this._items = items;
 		this._column = column;
@@ -151,7 +153,9 @@ export class CompletionModel {
 		// picks a score function based on the number of
 		// items that we have to score/filter and based on the
 		// user-configuration
-		const scoreFn: FuzzyScorer = (!this._options.filterGraceful || source.length > 2000) ? fuzzyScore : fuzzyScoreGracefulAggressive;
+		const scoreFn: FuzzyScorer = this._customScoreMethod
+			? this._customScoreMethod
+			: ((!this._options.filterGraceful || source.length > 2000) ? fuzzyScore : fuzzyScoreGracefulAggressive);
 
 		for (let i = 0; i < source.length; i++) {
 

@@ -281,6 +281,8 @@ export interface ITokenizationSupport {
 	tokenize(line: string, hasEOL: boolean, state: IState): TokenizationResult;
 
 	tokenizeEncoded(line: string, hasEOL: boolean, state: IState): EncodedTokenizationResult;
+
+	setLineIndex?(index: number): void;
 }
 
 /**
@@ -604,7 +606,7 @@ export interface CompletionItem {
 	 * The kind of this completion item. Based on the kind
 	 * an icon is chosen by the editor.
 	 */
-	kind: CompletionItemKind;
+	kind: CompletionItemKind | number;
 	/**
 	 * A modifier to the `kind` which affect how the item
 	 * is rendered, e.g. Deprecated is rendered with a strikeout
@@ -690,6 +692,11 @@ export interface CompletionList {
 	 */
 	duration?: number;
 }
+
+export type CompletionItemInfo = { completion: CompletionItem; word?: string };
+
+export type CompletionListItemSelectionMethod
+	= (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
 
 /**
  * How a suggest provider was triggered.

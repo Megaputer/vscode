@@ -638,7 +638,6 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	/**
 	 * An event emitted on a "mousewheel"
 	 * @event
-	 * @internal
 	 */
 	readonly onMouseWheel: Event<IMouseWheelEvent>;
 	/**

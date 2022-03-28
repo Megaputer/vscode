@@ -124,6 +124,7 @@ export class SuggestWidget implements IDisposable {
 	private readonly _ctxSuggestWidgetVisible: IContextKey<boolean>;
 	private readonly _ctxSuggestWidgetDetailsVisible: IContextKey<boolean>;
 	private readonly _ctxSuggestWidgetMultipleSuggestions: IContextKey<boolean>;
+	private readonly _ctxSuggestAtLeastOneSuggestion: IContextKey<boolean>;
 
 	private readonly _showTimeout = new TimeoutTimer();
 	private readonly _disposables = new DisposableStore();
@@ -282,6 +283,7 @@ export class SuggestWidget implements IDisposable {
 		this._ctxSuggestWidgetVisible = SuggestContext.Visible.bindTo(_contextKeyService);
 		this._ctxSuggestWidgetDetailsVisible = SuggestContext.DetailsVisible.bindTo(_contextKeyService);
 		this._ctxSuggestWidgetMultipleSuggestions = SuggestContext.MultipleSuggestions.bindTo(_contextKeyService);
+		this._ctxSuggestAtLeastOneSuggestion = SuggestContext.AtLeastOneSuggestion.bindTo(_contextKeyService);
 
 
 		this._disposables.add(dom.addStandardDisposableListener(this._details.widget.domNode, 'keydown', e => {
@@ -439,6 +441,7 @@ export class SuggestWidget implements IDisposable {
 				this._contentWidget.hide();
 				this._ctxSuggestWidgetVisible.reset();
 				this._ctxSuggestWidgetMultipleSuggestions.reset();
+				this._ctxSuggestAtLeastOneSuggestion.reset();
 				this._showTimeout.cancel();
 				this.element.domNode.classList.remove('visible');
 				this._list.splice(0, this._list.length);
@@ -527,6 +530,7 @@ export class SuggestWidget implements IDisposable {
 		const visibleCount = this._completionModel.items.length;
 		const isEmpty = visibleCount === 0;
 		this._ctxSuggestWidgetMultipleSuggestions.set(visibleCount > 1);
+		this._ctxSuggestAtLeastOneSuggestion.set(visibleCount > 0);
 
 		if (isEmpty) {
 			this._setState(isAuto ? State.Hidden : State.Empty);
@@ -537,8 +541,21 @@ export class SuggestWidget implements IDisposable {
 		this._focusedItem = undefined;
 		this._list.splice(0, this._list.length, this._completionModel.items);
 		this._setState(isFrozen ? State.Frozen : State.Open);
-		this._list.reveal(selectionIndex, 0);
-		this._list.setFocus([selectionIndex]);
+
+		const completionSelector = this._completionModel.customCompletionListItemSelectorMethod;
+		if (completionSelector) {
+			const items = this._completionModel.items.map(it => ({ completion: it.completion, word: it.word }));
+			const index = completionSelector(isAuto, selectionIndex, items);
+			if (index < 0) {
+				this._list.setFocus([]);
+			} else {
+				this._list.reveal(index, 0);
+				this._list.setFocus([index]);
+			}
+		} else {
+			this._list.reveal(selectionIndex, 0);
+			this._list.setFocus([selectionIndex]);
+		}
 
 		this._layout(this.element.size);
 		// Reset focus border
@@ -635,9 +652,13 @@ export class SuggestWidget implements IDisposable {
 			&& this._state !== State.Loading
 			&& this._completionModel
 		) {
+			const item = this._list.getFocusedElements()[0];
+			if (!item) {
+				return undefined;
+			}
 
 			return {
-				item: this._list.getFocusedElements()[0],
+				item,
 				index: this._list.getFocus()[0],
 				model: this._completionModel
 			};

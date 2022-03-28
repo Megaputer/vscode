@@ -25,13 +25,16 @@ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { Context as SuggestContext } from 'vs/editor/contrib/suggest/browser/suggest';
 import { AsyncIterableObject } from 'vs/base/common/async';
 import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
-import { Emitter } from 'vs/base/common/event';
+import { Emitter, Event } from 'vs/base/common/event';
 import { IModelDecorationsChangedEvent } from 'vs/editor/common/textModelEvents';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
+import { MarkdownHoverParticipant } from 'vs/editor/contrib/hover/browser/markdownHoverParticipant';
 
 const $ = dom.$;
 
 export class ContentHoverController extends Disposable {
 
+	private readonly _markdownHoverParticipant?: MarkdownHoverParticipant;
 	private readonly _participants: IEditorHoverParticipant[];
 	private readonly _widget = this._register(this._instantiationService.createInstance(ContentHoverWidget, this._editor));
 	private readonly _decorationsChangerListener = this._register(new EditorDecorationsChangerListener(this._editor));
@@ -54,7 +57,11 @@ export class ContentHoverController extends Disposable {
 		// Instantiate participants and sort them by `hoverOrdinal` which is relevant for rendering order.
 		this._participants = [];
 		for (const participant of HoverParticipantRegistry.getAll()) {
-			this._participants.push(this._instantiationService.createInstance(participant, this._editor));
+			let instance = this._instantiationService.createInstance(participant, this._editor);
+			this._participants.push(instance);
+			if (participant === MarkdownHoverParticipant) {
+				this._markdownHoverParticipant = instance as MarkdownHoverParticipant;
+			}
 		}
 		this._participants.sort((p1, p2) => p1.hoverOrdinal - p2.hoverOrdinal);
 
@@ -88,6 +95,19 @@ export class ContentHoverController extends Disposable {
 				this._hoverOperation.start(HoverStartMode.Delayed);
 			}
 		}
+	}
+
+
+	public setMarkdownRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownHoverParticipant?.setMarkdownRendererOptions(options);
+	}
+
+	public onDidContentsChanged(listener: (element: HTMLElement) => void) {
+		this._widget.onDidContentsChanged(listener);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._computer.anchor?.range;
 	}
 
 	public maybeShowAt(mouseEvent: IEditorMouseEvent): boolean {
@@ -320,6 +340,9 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 
 	private _visibleData: ContentHoverVisibleData | null = null;
 
+	protected readonly _onDidContentsChanged: Emitter<HTMLElement> = this._register(new Emitter<HTMLElement>());
+	public readonly onDidContentsChanged: Event<HTMLElement> = this._onDidContentsChanged.event;
+
 	/**
 	 * Returns `null` if the hover is not visible.
 	 */
@@ -450,6 +473,7 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 
 	public onContentsChanged(): void {
 		this._hover.onContentsChanged();
+		this._onDidContentsChanged.fire(this.getDomNode());
 
 		const scrollDimensions = this._hover.scrollbar.getScrollDimensions();
 		const hasHorizontalScrollbar = (scrollDimensions.scrollWidth > scrollDimensions.width);
@@ -460,6 +484,7 @@ export class ContentHoverWidget extends Disposable implements IContentWidget {
 				this._hover.contentsDomNode.style.paddingBottom = extraBottomPadding;
 				this._editor.layoutContentWidget(this);
 				this._hover.onContentsChanged();
+				this._onDidContentsChanged.fire(this.getDomNode());
 			}
 		}
 	}
