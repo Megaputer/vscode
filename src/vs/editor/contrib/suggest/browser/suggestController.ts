@@ -8,7 +8,7 @@ import { isNonEmptyArray } from 'vs/base/common/arrays';
 import { IdleValue } from 'vs/base/common/async';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
 import { onUnexpectedError } from 'vs/base/common/errors';
-import { Event } from 'vs/base/common/event';
+import { Emitter, Event } from 'vs/base/common/event';
 import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { SimpleKeybinding } from 'vs/base/common/keybindings';
 import { DisposableStore, dispose, IDisposable, MutableDisposable, toDisposable } from 'vs/base/common/lifecycle';
@@ -84,6 +84,9 @@ class LineSuffix {
 		// the cursor to the line end.
 		if (this._marker) {
 			const range = this._model.getDecorationRange(this._marker[0]);
+			if (!range) {
+				return this._model.getLineMaxColumn(position.lineNumber) - position.column;
+			}
 			const end = this._model.getOffsetAt(range!.getStartPosition());
 			return end - this._model.getOffsetAt(position);
 		} else {
@@ -116,6 +119,9 @@ export class SuggestController implements IEditorContribution {
 	private readonly _toDispose = new DisposableStore();
 	private readonly _overtypingCapturer: IdleValue<OvertypingCapturer>;
 	private readonly _selectors = new PriorityRegistry<ISuggestItemPreselector>(s => s.priority);
+
+	private readonly _onDidAcceptSelectedSuggestion = new Emitter<ISelectedSuggestion>();
+	readonly onDidAcceptSelectedSuggestion: Event<ISelectedSuggestion> = this._onDidAcceptSelectedSuggestion.event;
 
 	constructor(
 		editor: ICodeEditor,
@@ -576,6 +582,9 @@ export class SuggestController implements IEditorContribution {
 			flags |= InsertFlags.AlternativeOverwriteConfig;
 		}
 		this._insertSuggestion(item, flags);
+		if (item) {
+			this._onDidAcceptSelectedSuggestion.fire(item);
+		}
 	}
 	acceptNextSuggestion() {
 		this._alternatives.value.next();
@@ -799,13 +808,13 @@ registerEditorCommand(new SuggestCommand({
 		weight: weight,
 		kbExpr: EditorContextKeys.textInputFocus,
 		primary: KeyCode.Escape,
-		secondary: [KeyMod.Shift | KeyCode.Escape]
+		secondary: [KeyMod.Shift | KeyCode.Escape, KeyCode.RightArrow]
 	}
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectNextSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectNextSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -830,13 +839,13 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectLastSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectLastSuggestion()
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectPrevSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectPrevSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -861,7 +870,7 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectFirstSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.MultipleSuggestions),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectFirstSuggestion()
 }));
 

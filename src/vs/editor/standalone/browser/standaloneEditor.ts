@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import 'vs/css!./standalone-tokens';
+import { FuzzyScorer } from 'vs/base/common/filters';
 import { IDisposable } from 'vs/base/common/lifecycle';
 import { splitLines } from 'vs/base/common/strings';
 import { URI } from 'vs/base/common/uri';
@@ -20,6 +21,7 @@ import { ILanguageConfigurationService } from 'vs/editor/common/languages/langua
 import { NullState, nullTokenize } from 'vs/editor/common/languages/nullTokenize';
 import { ILanguageService } from 'vs/editor/common/languages/language';
 import { IModelService } from 'vs/editor/common/services/model';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { createWebWorker as actualCreateWebWorker, IWebWorkerOptions, MonacoWebWorker } from 'vs/editor/browser/services/webWorker';
 import * as standaloneEnums from 'vs/editor/common/standalone/standaloneEnums';
 import { Colorizer, IColorizerElementOptions, IColorizerOptions } from 'vs/editor/standalone/browser/colorizer';
@@ -255,6 +257,14 @@ export function defineTheme(themeName: string, themeData: IStandaloneThemeData):
 }
 
 /**
+ * Define a new completion item kinds.
+ */
+export function defineExtendedCompletionItemKinds(completionItemKinds: Map<number, string>): void {
+	const standaloneThemeService = StandaloneServices.get(IStandaloneThemeService);
+	standaloneThemeService.registerExtendedCompletionItemKinds(completionItemKinds);
+}
+
+/**
  * Switches to a theme.
  */
 export function setTheme(themeName: string): void {
@@ -274,6 +284,13 @@ export function remeasureFonts(): void {
  */
 export function registerCommand(id: string, handler: (accessor: any, ...args: any[]) => void): IDisposable {
 	return CommandsRegistry.registerCommand({ id, handler });
+}
+
+/**
+ * Register a custom completion score method.
+ */
+export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
+	StandaloneServices.get(IEditorCompletionService).registerCompletionScoreMethod(scorer);
 }
 
 /**
@@ -305,9 +322,11 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		colorizeModelLine: <any>colorizeModelLine,
 		tokenize: <any>tokenize,
 		defineTheme: <any>defineTheme,
+		defineExtendedCompletionItemKinds: <any>defineExtendedCompletionItemKinds,
 		setTheme: <any>setTheme,
 		remeasureFonts: remeasureFonts,
 		registerCommand: registerCommand,
+		registerCompletionScoreMethod: registerCompletionScoreMethod,
 
 		// enums
 		AccessibilitySupport: standaloneEnums.AccessibilitySupport,

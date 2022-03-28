@@ -2000,6 +2000,9 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 			}
 		}
 		this.handleTokenizationProgress(backgroundTokenizationCompleted);
+		if (backgroundTokenizationCompleted) {
+			this._onDidChangeTokenizationState.fire(false);
+		}
 	}
 
 	public setSemanticTokens(tokens: SparseMultilineTokens[] | null, isComplete: boolean): void {

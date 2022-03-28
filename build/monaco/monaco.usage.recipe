@@ -4,7 +4,6 @@
 import { ServiceIdentifier } from './vs/platform/instantiation/common/instantiation';
 import { create as create1 } from './vs/base/common/worker/simpleWorker';
 import { create as create2 } from './vs/editor/common/services/editorSimpleWorker';
-import { SyncDescriptor0 } from './vs/platform/instantiation/common/descriptors';
 import { ModesHoverController } from './vs/editor/contrib/hover/browser/hover';
 import { SuggestController } from './vs/editor/contrib/suggest/browser/suggestController';
 import { SuggestModel } from './vs/editor/contrib/suggest/browser/suggestModel';
