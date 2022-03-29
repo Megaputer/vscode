@@ -11,6 +11,7 @@ import { IEditorOptions } from 'vs/editor/common/config/editorOptions';
 import { IPosition, Position } from 'vs/editor/common/core/position';
 import { IRange, Range } from 'vs/editor/common/core/range';
 import { ISelection, Selection } from 'vs/editor/common/core/selection';
+import { CompletionItem } from 'vs/editor/common/languages';
 import { IModelDecorationsChangeAccessor, ITextModel, OverviewRulerLane, TrackedRangeStickiness, IValidEditOperation } from 'vs/editor/common/model';
 import { ThemeColor } from 'vs/platform/theme/common/themeService';
 import { IDimension } from 'vs/editor/common/core/dimension';
@@ -198,6 +199,11 @@ export const enum ScrollType {
 	Smooth = 0,
 	Immediate = 1,
 }
+
+export type CompletionItemInfo = { completion: CompletionItem; word?: string };
+
+export type CompletionListItemSelectionMethod
+	= (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
 
 /**
  * An editor.

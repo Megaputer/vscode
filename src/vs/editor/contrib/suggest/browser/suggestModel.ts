@@ -562,7 +562,7 @@ export class SuggestModel implements IDisposable {
 				this._editor.getOption(EditorOption.snippetSuggestions),
 				clipboardText,
 				this._editorCompletionScoreService.getScorer(),
-				this._editorCompletionScoreService.getCompletionListItemSelectorMethod()
+				this._editor.getCompletionListItemSelectorMethod()
 			);
 
 			// store containers so that they can be disposed later

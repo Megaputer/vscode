@@ -266,6 +266,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	private _dropIntoEditorDecorationIds: string[] = [];
 
+	private completionListItemSelector?: editorCommon.CompletionListItemSelectionMethod;
+
 	constructor(
 		domElement: HTMLElement,
 		_options: Readonly<IEditorConstructionOptions>,
@@ -1830,6 +1832,14 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	private removeDropIndicator(): void {
 		this._dropIntoEditorDecorationIds = this.deltaDecorations(this._dropIntoEditorDecorationIds, []);
+	}
+
+	public setCompletionListItemSelectorMethod(method: editorCommon.CompletionListItemSelectionMethod) {
+		this.completionListItemSelector = method;
+	}
+
+	public getCompletionListItemSelectorMethod(): editorCommon.CompletionListItemSelectionMethod | undefined {
+		return this.completionListItemSelector;
 	}
 }
 

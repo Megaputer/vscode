@@ -1003,6 +1003,16 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	hasModel(): this is IActiveCodeEditor;
 
 	setBanner(bannerDomNode: HTMLElement | null, height: number): void;
+
+	/**
+	 * Set a custom completion list item selection method.
+	 */
+	setCompletionListItemSelectorMethod(method: editorCommon.CompletionListItemSelectionMethod): void;
+
+	/**
+	 * Get a custom completion list item selection method.
+	 */
+	getCompletionListItemSelectorMethod(): editorCommon.CompletionListItemSelectionMethod | undefined;
 }
 
 /**

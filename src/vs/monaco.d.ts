@@ -2358,6 +2358,13 @@ declare namespace monaco.editor {
 		Immediate = 1
 	}
 
+	export type CompletionItemInfo = {
+		completion: languages.CompletionItem;
+		word?: string;
+	};
+
+	export type CompletionListItemSelectionMethod = (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
+
 	/**
 	 * An editor.
 	 */
@@ -5407,6 +5414,14 @@ declare namespace monaco.editor {
 		 */
 		applyFontInfo(target: HTMLElement): void;
 		setBanner(bannerDomNode: HTMLElement | null, height: number): void;
+		/**
+		 * Set a custom completion list item selection method.
+		 */
+		setCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void;
+		/**
+		 * Get a custom completion list item selection method.
+		 */
+		getCompletionListItemSelectorMethod(): CompletionListItemSelectionMethod | undefined;
 	}
 
 	/**
@@ -5817,11 +5832,6 @@ declare namespace monaco.languages {
 	 * Register an inlay hints provider.
 	 */
 	export function registerInlayHintsProvider(languageSelector: LanguageSelector, provider: InlayHintsProvider): IDisposable;
-
-	/**
-	 * Register a custom completion list item selection method.
-	 */
-	export function registerCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void;
 
 	/**
 	 * Contains additional diagnostic information about the context in which
@@ -6288,13 +6298,6 @@ declare namespace monaco.languages {
 		incomplete?: boolean;
 		dispose?(): void;
 	}
-
-	export type CompletionItemInfo = {
-		completion: CompletionItem;
-		word?: string;
-	};
-
-	export type CompletionListItemSelectionMethod = (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
 
 	/**
 	 * How a suggest provider was triggered.

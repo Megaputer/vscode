@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 import { FuzzyScorer } from 'vs/base/common/filters';
 import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
-import { CompletionListItemSelectionMethod } from 'vs/editor/common/languages';
 
 export const IEditorCompletionService = createDecorator<IEditorCompletionService>('completionScoreService');
 
@@ -13,15 +12,11 @@ export interface IEditorCompletionService {
 
 	registerCompletionScoreMethod(fuzzyScorer: FuzzyScorer): void;
 	getScorer(): FuzzyScorer | undefined;
-
-	registerCompletionListItemSelectorMethod(fuzzyScorer: CompletionListItemSelectionMethod): void;
-	getCompletionListItemSelectorMethod(): CompletionListItemSelectionMethod | undefined;
 }
 
 export class EditorCompletionServiceImpl implements IEditorCompletionService {
 	declare readonly _serviceBrand: undefined;
 	private scorer?: FuzzyScorer;
-	private completionListItemSelector?: CompletionListItemSelectionMethod;
 
 	registerCompletionScoreMethod(fuzzyScorer: FuzzyScorer): void {
 		this.scorer = fuzzyScorer;
@@ -29,12 +24,5 @@ export class EditorCompletionServiceImpl implements IEditorCompletionService {
 
 	getScorer(): FuzzyScorer | undefined {
 		return this.scorer;
-	}
-
-	registerCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void {
-		this.completionListItemSelector = method;
-	}
-	getCompletionListItemSelectorMethod(): CompletionListItemSelectionMethod | undefined {
-		return this.completionListItemSelector;
 	}
 }
