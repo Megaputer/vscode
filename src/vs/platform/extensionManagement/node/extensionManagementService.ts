@@ -985,17 +985,22 @@ class InstallExtensionInProfileTask extends AbstractExtensionTask<ILocalExtensio
 				: this.options.installPreReleaseVersion || this.source.properties.isPreReleaseVersion || existingExtension?.preRelease;
 
 			if (existingExtension && existingExtension.type !== ExtensionType.System && existingExtension.manifest.version === this.source.version) {
-				return this.extensionsScanner.updateMetadata(existingExtension, metadata, this.options.profileLocation);
+				local = await this.extensionsScanner.updateMetadata(existingExtension, metadata);
+			} else {
+				// Unset if the extension is uninstalled and return the unset extension.
+				local = await this.unsetIfUninstalled(this.extensionKey);
 			}
-
-			// Unset if the extension is uninstalled and return the unset extension.
-			local = await this.unsetIfUninstalled(this.extensionKey);
 		}
 
 		if (token.isCancellationRequested) {
 			throw toExtensionManagementError(new CancellationError());
 		}
 
+		if (!local) {
+			const result = await this.extractExtensionFn(this.operation, token);
+			local = result.local;
+			this._verificationStatus = result.verificationStatus;
+		}
 		if (!local) {
 			const result = await this.extractExtensionFn(this.operation, token);
 			local = result.local;
