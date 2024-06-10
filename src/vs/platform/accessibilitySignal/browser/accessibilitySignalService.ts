@@ -27,6 +27,7 @@ export interface IAccessibilitySignalService {
 
 	getEnabledState(signal: AccessibilitySignal, userGesture: boolean, modality?: AccessibilityModality | undefined): IValueWithChangeEvent<boolean>;
 	getDelayMs(signal: AccessibilitySignal, modality: AccessibilityModality, mode: 'line' | 'positional'): number;
+	getDelayMs(signal: AccessibilitySignal, modality: AccessibilityModality, mode: 'line' | 'positional'): number;
 	/**
 	 * Avoid this method and prefer `.playSignal`!
 	 * Only use it when you want to play the sound regardless of enablement, e.g. in the settings quick pick.
@@ -242,16 +243,17 @@ export class AccessibilitySignalService extends Disposable implements IAccessibi
 	}
 
 	public getDelayMs(signal: AccessibilitySignal, modality: AccessibilityModality, mode: 'line' | 'positional'): number {
-		if (!this.configurationService.getValue('accessibility.signalOptions.debouncePositionChanges')) {
+		const options: { debouncePositionChanges: boolean; 'experimental.delays': { general: { sound: number; announcement: number }; errorAtPosition: { sound: number; announcement: number }; warningAtPosition: { sound: number; announcement: number } } } = this.configurationService.getValue('accessibility.signalOptions');
+		if (!options || !options.debouncePositionChanges) {
 			return 0;
 		}
 		let value: { sound: number; announcement: number };
 		if (signal.name === AccessibilitySignal.errorAtPosition.name && mode === 'positional') {
-			value = this.configurationService.getValue('accessibility.signalOptions.experimental.delays.errorAtPosition');
+			value = options['experimental.delays'].errorAtPosition;
 		} else if (signal.name === AccessibilitySignal.warningAtPosition.name && mode === 'positional') {
-			value = this.configurationService.getValue('accessibility.signalOptions.experimental.delays.warningAtPosition');
+			value = options['experimental.delays'].warningAtPosition;
 		} else {
-			value = this.configurationService.getValue('accessibility.signalOptions.experimental.delays.general');
+			value = options['experimental.delays'].general;
 		}
 		return modality === 'sound' ? value.sound : value.announcement;
 	}
