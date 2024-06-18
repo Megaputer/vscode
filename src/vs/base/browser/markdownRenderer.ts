@@ -7,8 +7,8 @@ import * as DOM from 'vs/base/browser/dom';
 import * as dompurify from 'vs/base/browser/dompurify/dompurify';
 import { DomEmitter } from 'vs/base/browser/event';
 import { createElement, FormattedTextRenderOptions } from 'vs/base/browser/formattedTextRenderer';
-import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
-import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
+import { IKeyboardEvent, StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
+import { IMouseEvent, StandardMouseEvent } from 'vs/base/browser/mouseEvent';
 import { renderLabelWithIcons } from 'vs/base/browser/ui/iconLabel/iconLabels';
 import { onUnexpectedError } from 'vs/base/common/errors';
 import { Event } from 'vs/base/common/event';
@@ -37,6 +37,8 @@ export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
 	readonly fillInIncompleteTokens?: boolean;
 	readonly remoteImageIsAllowed?: (uri: URI) => boolean;
 	readonly sanitizerOptions?: ISanitizerOptions;
+	readonly headingBlockRenderer?: (text: string, level: number, raw: string) => string;
+	readonly onClickHandler?: (content: string, event?: IMouseEvent | IKeyboardEvent) => boolean;
 }
 
 type ConfigModifier = (original?: string[]) => string[];
@@ -181,8 +183,16 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 		};
 	}
 
+	if (options.headingBlockRenderer) {
+		renderer.heading = options.headingBlockRenderer;
+	}
+
 	if (options.actionHandler) {
 		const _activateLink = function (event: StandardMouseEvent | StandardKeyboardEvent): void {
+			if (options.onClickHandler?.('', event)) {
+				return;
+			}
+
 			let target: HTMLElement | null = event.target;
 			if (target.tagName !== 'A') {
 				target = target.parentElement;

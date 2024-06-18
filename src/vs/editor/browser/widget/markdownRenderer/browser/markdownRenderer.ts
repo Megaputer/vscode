@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISanitizerOptions, MarkdownRenderOptions, MarkedOptions, renderMarkdown } from 'vs/base/browser/markdownRenderer';
+import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
+import { IMouseEvent } from 'vs/base/browser/mouseEvent';
 import { createTrustedTypesPolicy } from 'vs/base/browser/trustedTypes';
 import { onUnexpectedError } from 'vs/base/common/errors';
 import { Emitter } from 'vs/base/common/event';
@@ -27,6 +29,8 @@ export interface IMarkdownRendererOptions {
 	readonly codeBlockFontFamily?: string;
 	readonly codeBlockFontSize?: string;
 	readonly sanitizerOptions?: ISanitizerOptions;
+	readonly headingBlockRenderer?: (text: string, level: number, raw: string) => string;
+	readonly onClickHandler?: (content: string, event?: IMouseEvent | IKeyboardEvent) => boolean;
 }
 
 /**
@@ -109,7 +113,9 @@ export class MarkdownRenderer {
 				callback: (link) => openLinkFromMarkdown(this._openerService, link, markdown.isTrusted),
 				disposables: disposables
 			},
-			sanitizerOptions: this._options.sanitizerOptions
+			sanitizerOptions: this._options.sanitizerOptions,
+			headingBlockRenderer: this._options.headingBlockRenderer,
+			onClickHandler: this._options.onClickHandler
 		};
 	}
 }
