@@ -62,6 +62,7 @@ import { ContextMenuService } from 'vs/platform/contextview/browser/contextMenuS
 import { getSingletonServiceDescriptors, InstantiationType, registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { OpenerService } from 'vs/editor/browser/services/openerService';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorker';
+import { EditorCompletionScoreServiceImpl, IEditorCompletionScoreService } from 'vs/editor/common/services/editorCompletionScoreService';
 import { EditorWorkerService } from 'vs/editor/browser/services/editorWorkerService';
 import { ILanguageService } from 'vs/editor/common/languages/language';
 import { MarkerDecorationsService } from 'vs/editor/common/services/markerDecorationsService';
@@ -1145,6 +1146,7 @@ registerSingleton(IClipboardService, BrowserClipboardService, InstantiationType.
 registerSingleton(IContextMenuService, StandaloneContextMenuService, InstantiationType.Eager);
 registerSingleton(IMenuService, MenuService, InstantiationType.Eager);
 registerSingleton(IAccessibilitySignalService, StandaloneAccessbilitySignalService, InstantiationType.Eager);
+registerSingleton(IEditorCompletionScoreService, EditorCompletionScoreServiceImpl, InstantiationType.Eager);
 
 /**
  * We don't want to eagerly instantiate services because embedders get a one time chance

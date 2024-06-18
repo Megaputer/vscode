@@ -58,7 +58,8 @@ export class CompletionModel {
 		options: InternalSuggestOptions,
 		snippetSuggestions: 'top' | 'bottom' | 'inline' | 'none',
 		fuzzyScoreOptions: FuzzyScoreOptions | undefined = FuzzyScoreOptions.default,
-		readonly clipboardText: string | undefined = undefined
+		readonly clipboardText: string | undefined = undefined,
+		private _customScoreMethod?: FuzzyScorer
 	) {
 		this._items = items;
 		this._column = column;
@@ -137,7 +138,9 @@ export class CompletionModel {
 		// picks a score function based on the number of
 		// items that we have to score/filter and based on the
 		// user-configuration
-		const scoreFn: FuzzyScorer = (!this._options.filterGraceful || source.length > 2000) ? fuzzyScore : fuzzyScoreGracefulAggressive;
+		const scoreFn: FuzzyScorer = this._customScoreMethod
+			? this._customScoreMethod
+			: ((!this._options.filterGraceful || source.length > 2000) ? fuzzyScore : fuzzyScoreGracefulAggressive);
 
 		for (let i = 0; i < source.length; i++) {
 

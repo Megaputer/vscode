@@ -7,6 +7,7 @@ import { mainWindow } from 'vs/base/browser/window';
 import { Disposable, DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
 import { splitLines } from 'vs/base/common/strings';
 import { URI } from 'vs/base/common/uri';
+import { FuzzyScoreOptions, FuzzyScorer } from 'vs/base/common/filters';
 import 'vs/css!./standalone-tokens';
 import { FontMeasurements } from 'vs/editor/browser/config/fontMeasurements';
 import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
@@ -40,6 +41,7 @@ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { IMarker, IMarkerData, IMarkerService } from 'vs/platform/markers/common/markers';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { MultiDiffEditorWidget } from 'vs/editor/browser/widget/multiDiffEditor/multiDiffEditorWidget';
+import { IEditorCompletionScoreService } from 'vs/editor/common/services/editorCompletionScoreService';
 
 /**
  * Create a new editor under `domElement`.
@@ -439,6 +441,14 @@ export function registerCommand(id: string, handler: (accessor: any, ...args: an
 	return CommandsRegistry.registerCommand({ id, handler });
 }
 
+/**
+ * Register a custom completion score method.
+ */
+export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
+	const completionScoreService = StandaloneServices.get(IEditorCompletionScoreService);
+	completionScoreService.registerCompletionScoreMethod(scorer);
+}
+
 export interface ILinkOpener {
 	open(resource: URI): boolean | Promise<boolean>;
 }
@@ -545,6 +555,7 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		setTheme: <any>setTheme,
 		remeasureFonts: remeasureFonts,
 		registerCommand: registerCommand,
+		registerCompletionScoreMethod: registerCompletionScoreMethod,
 
 		registerLinkOpener: registerLinkOpener,
 		registerEditorOpener: <any>registerEditorOpener,
@@ -584,6 +595,7 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		FindMatch: <any>FindMatch,
 		ApplyUpdateResult: <any>ApplyUpdateResult,
 		EditorZoom: <any>EditorZoom,
+		FuzzyScoreOptions: <any>FuzzyScoreOptions,
 
 		createMultiFileDiffEditor: <any>createMultiFileDiffEditor,
 

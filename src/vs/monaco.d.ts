@@ -1141,6 +1141,11 @@ declare namespace monaco.editor {
 	 */
 	export function registerCommand(id: string, handler: (accessor: any, ...args: any[]) => void): IDisposable;
 
+	/**
+	 * Register a custom completion score method.
+	 */
+	export function registerCompletionScoreMethod(scorer: FuzzyScorer): void;
+
 	export interface ILinkOpener {
 		open(resource: Uri): boolean | Promise<boolean>;
 	}
@@ -1526,6 +1531,31 @@ declare namespace monaco.editor {
 		Auto = 1,
 		Hidden = 2,
 		Visible = 3
+	}
+
+	/**
+	 * An array representing a fuzzy match.
+	 *
+	 * 0. the score
+	 * 1. the offset at which matching started
+	 * 2. `<match_pos_N>`
+	 * 3. `<match_pos_1>`
+	 * 4. `<match_pos_0>` etc
+	 */
+	export type FuzzyScore = [score: number, wordStart: number, ...matches: number[]];
+
+	export interface FuzzyScorer {
+		(pattern: string, lowPattern: string, patternPos: number, word: string, lowWord: string, wordPos: number, options?: FuzzyScoreOptions): FuzzyScore | undefined;
+	}
+
+	export abstract class FuzzyScoreOptions {
+		readonly firstMatchCanBeWeak: boolean;
+		readonly boostFullMatch: boolean;
+		static default: {
+			boostFullMatch: boolean;
+			firstMatchCanBeWeak: boolean;
+		};
+		constructor(firstMatchCanBeWeak: boolean, boostFullMatch: boolean);
 	}
 
 	export interface ThemeColor {
