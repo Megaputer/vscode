@@ -4084,6 +4084,11 @@ declare namespace monaco.editor {
 		 * Defaults to false.
 		 */
 		above?: boolean;
+		/**
+		 * Max width of the hover widget.
+		 * Defaults to 500.
+		 */
+		maxWidth?: number;
 	}
 
 	/**
