@@ -414,27 +414,6 @@ function sanitizeRenderedMarkdown(
 ): TrustedHTML {
 	const { config, allowedSchemes } = getSanitizerOptions(options);
 	const store = new DisposableStore();
-	store.add(addDompurifyHook('uponSanitizeAttribute', (element, e) => {
-		if (e.attrName === 'style' || e.attrName === 'class') {
-			if (element.tagName === 'SPAN') {
-				if (e.attrName === 'style') {
-					e.keepAttr = /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?$/.test(e.attrValue);
-					return;
-				} else if (e.attrName === 'class') {
-					e.keepAttr = /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/.test(e.attrValue);
-					return;
-				}
-			}
-			e.keepAttr = false;
-			return;
-		} else if (element.tagName === 'INPUT' && element.attributes.getNamedItem('type')?.value === 'checkbox') {
-			if ((e.attrName === 'type' && e.attrValue === 'checkbox') || e.attrName === 'disabled' || e.attrName === 'checked') {
-				e.keepAttr = true;
-				return;
-			}
-			e.keepAttr = false;
-		}
-	}));
 
 	store.add(addDompurifyHook('uponSanitizeElement', (element, e) => {
 		if (e.tagName === 'input') {
