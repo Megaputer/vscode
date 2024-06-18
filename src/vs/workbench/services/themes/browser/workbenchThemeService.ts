@@ -406,6 +406,9 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 		});
 	}
 
+	public registerExtendedCompletionItemKinds(items: Map<number, string>): void { }
+	public get extendedCompletionItemKindTheme() { return undefined; }
+
 	private async internalSetColorTheme(themeIdOrTheme: string | undefined | IWorkbenchColorTheme, settingsTarget: ThemeSettingTarget): Promise<IWorkbenchColorTheme | null> {
 		if (!themeIdOrTheme) {
 			return null;

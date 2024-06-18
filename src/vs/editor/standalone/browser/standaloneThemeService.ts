@@ -15,7 +15,7 @@ import { hc_black, hc_light, vs, vs_dark } from 'vs/editor/standalone/common/the
 import { IEnvironmentService } from 'vs/platform/environment/common/environment';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { asCssVariableName, ColorIdentifier, Extensions, IColorRegistry } from 'vs/platform/theme/common/colorRegistry';
-import { Extensions as ThemingExtensions, ICssStyleCollector, IFileIconTheme, IProductIconTheme, IThemingRegistry, ITokenStyle } from 'vs/platform/theme/common/themeService';
+import { Extensions as ThemingExtensions, ICssStyleCollector, IFileIconTheme, IProductIconTheme, IThemingRegistry, ITokenStyle, IExtendedCompletionItemKindTheme } from 'vs/platform/theme/common/themeService';
 import { IDisposable, Disposable } from 'vs/base/common/lifecycle';
 import { ColorScheme, isDark, isHighContrast } from 'vs/platform/theme/common/theme';
 import { getIconsStyleSheet, UnthemedProductIconTheme } from 'vs/platform/theme/browser/iconsStyleSheet';
@@ -64,6 +64,10 @@ class StandaloneTheme implements IStandaloneTheme {
 
 	public get base(): string {
 		return this.themeData.base;
+	}
+
+	public get extendedCompletionItemKindTheme() {
+		return undefined;
 	}
 
 	public notifyBaseUpdated() {
@@ -181,6 +185,23 @@ class StandaloneTheme implements IStandaloneTheme {
 	public readonly semanticHighlighting = false;
 }
 
+class ExtendedCompletionItemKindTheme implements IExtendedCompletionItemKindTheme {
+	private icons = new Map<number, string>();
+
+	getIconClassName(completionItemKind: number): string | undefined {
+		return this.icons.get(completionItemKind);
+	}
+
+	registerExtendedCompletionItemKinds(items: Map<number, string>) {
+		items.forEach((className, kind) => {
+			if (kind <= 27) {
+				throw new Error(`CompletionItemKind error: cannot assign new icon for CompletionItemKind(${kind})`);
+			}
+			this.icons.set(kind, className);
+		});
+	}
+}
+
 function isBuiltinTheme(themeName: string): themeName is BuiltinTheme {
 	return (
 		themeName === VS_LIGHT_THEME_NAME
@@ -233,6 +254,7 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 	private _theme!: IStandaloneTheme;
 
 	private _builtInProductIconTheme = new UnthemedProductIconTheme();
+	private _extendedCompletionItemKindTheme: IExtendedCompletionItemKindTheme = new ExtendedCompletionItemKindTheme();
 
 	constructor() {
 		super();
@@ -422,4 +444,11 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 		return this._builtInProductIconTheme;
 	}
 
+	public get extendedCompletionItemKindTheme() {
+		return this._extendedCompletionItemKindTheme;
+	}
+
+	registerExtendedCompletionItemKinds(items: Map<number, string>) {
+		this._extendedCompletionItemKindTheme?.registerExtendedCompletionItemKinds(items);
+	}
 }

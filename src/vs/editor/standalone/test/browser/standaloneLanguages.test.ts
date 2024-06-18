@@ -95,6 +95,8 @@ suite('TokenizationSupport2Adapter', () => {
 		public readonly onDidColorThemeChange = new Emitter<IColorTheme>().event;
 		public readonly onDidFileIconThemeChange = new Emitter<IFileIconTheme>().event;
 		public readonly onDidProductIconThemeChange = new Emitter<IProductIconTheme>().event;
+		public registerExtendedCompletionItemKinds(items: Map<number, string>): void { }
+		public get extendedCompletionItemKindTheme() { return undefined; }
 	}
 
 	class MockState implements IState {

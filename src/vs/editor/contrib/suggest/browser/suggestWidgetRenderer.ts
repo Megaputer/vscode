@@ -202,7 +202,13 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 			// normal icon
 			data.icon.className = 'icon hide';
 			data.iconContainer.className = '';
-			data.iconContainer.classList.add('suggest-icon', ...ThemeIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind)));
+			const extendedTheme = this._themeService.extendedCompletionItemKindTheme;
+			const externalIcon = !extendedTheme ? undefined : extendedTheme.getIconClassName(completion.kind);
+			if (externalIcon) {
+				data.iconContainer.classList.add('suggest-icon', externalIcon);
+			} else {
+				data.iconContainer.classList.add('suggest-icon', ...ThemeIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind)));
+			}
 		}
 
 		if (completion.tags && completion.tags.indexOf(CompletionItemTag.Deprecated) >= 0) {

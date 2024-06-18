@@ -100,4 +100,7 @@ export class TestThemeService implements IThemeService {
 	public get onDidProductIconThemeChange(): Event<IProductIconTheme> {
 		return this._onProductIconThemeChange.event;
 	}
+
+	registerExtendedCompletionItemKinds(items: Map<number, string>) { }
+	public get extendedCompletionItemKindTheme() { return undefined; }
 }

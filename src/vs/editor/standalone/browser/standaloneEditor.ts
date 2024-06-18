@@ -410,6 +410,14 @@ export function defineTheme(themeName: string, themeData: IStandaloneThemeData):
 }
 
 /**
+ * Define a new completion item kinds.
+ */
+export function defineExtendedCompletionItemKinds(completionItemKinds: Map<number, string>): void {
+	const standaloneThemeService = StandaloneServices.get(IStandaloneThemeService);
+	standaloneThemeService.registerExtendedCompletionItemKinds(completionItemKinds);
+}
+
+/**
  * Switches to a theme.
  */
 export function setTheme(themeName: string): void {
@@ -533,6 +541,7 @@ export function createMonacoEditorAPI(): typeof monaco.editor {
 		colorizeModelLine: <any>colorizeModelLine,
 		tokenize: <any>tokenize,
 		defineTheme: <any>defineTheme,
+		defineExtendedCompletionItemKinds: <any>defineExtendedCompletionItemKinds,
 		setTheme: <any>setTheme,
 		remeasureFonts: remeasureFonts,
 		registerCommand: registerCommand,
