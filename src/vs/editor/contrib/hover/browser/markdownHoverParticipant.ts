@@ -28,6 +28,7 @@ import { ThemeIcon } from 'vs/base/common/themables';
 import { onUnexpectedExternalError } from 'vs/base/common/errors';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { ClickAction, HoverPosition, KeyDownAction } from 'vs/base/browser/ui/hover/hoverWidget';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { KeyCode } from 'vs/base/common/keyCodes';
 import { IHoverService, WorkbenchHoverDelegate } from 'vs/platform/hover/browser/hover';
 import { AsyncIterableObject } from 'vs/base/common/async';
@@ -206,6 +207,10 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 	public updateMarkdownHoverVerbosityLevel(action: HoverVerbosityAction, index?: number, focus?: boolean) {
 		this._renderedHoverParts?.updateMarkdownHoverPartVerbosityLevel(action, index, focus);
 	}
+
+	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
+		this._renderedHoverParts?.setMarkdownHoverRendererOptions(options);
+	}
 }
 
 interface RenderedHoverPart {
@@ -219,6 +224,7 @@ class MarkdownRenderedHoverParts extends Disposable {
 	private _renderedHoverParts: RenderedHoverPart[];
 	private _focusedHoverPartIndex: number = -1;
 	private _ongoingHoverOperations: Map<HoverProvider, { verbosityDelta: number; tokenSource: CancellationTokenSource }> = new Map();
+	private _markdownRendererOptions: MarkdownRenderOptions = {};
 
 	constructor(
 		hoverParts: MarkdownHover[], // we own!
@@ -314,6 +320,7 @@ class MarkdownRenderedHoverParts extends Disposable {
 			this._languageService,
 			this._openerService,
 			onFinishedRendering,
+			this._markdownRendererOptions
 		));
 		return { renderedMarkdown, disposables };
 	}
@@ -363,6 +370,10 @@ class MarkdownRenderedHoverParts extends Disposable {
 			this._focusOnHoverPartWithIndex(indexOfInterest);
 		}
 		this._onFinishedRendering();
+	}
+
+	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownRendererOptions = options;
 	}
 
 	public markdownHoverContentAtIndex(index: number): string {
@@ -456,6 +467,7 @@ function renderMarkdownInContainer(
 	languageService: ILanguageService,
 	openerService: IOpenerService,
 	onFinishedRendering: () => void,
+	options: MarkdownRenderOptions = {},
 ): IDisposable {
 	const store = new DisposableStore();
 	for (const contents of markdownStrings) {
@@ -464,7 +476,7 @@ function renderMarkdownInContainer(
 		}
 		const markdownHoverElement = $('div.markdown-hover');
 		const hoverContentsElement = dom.append(markdownHoverElement, $('div.hover-contents'));
-		const renderer = store.add(new MarkdownRenderer({ editor }, languageService, openerService));
+		const renderer = store.add(new MarkdownRenderer({ ...options, editor }, languageService, openerService));
 		store.add(renderer.onDidRenderAsync(() => {
 			hoverContentsElement.className = 'hover-contents code-hover-contents';
 			onFinishedRendering();

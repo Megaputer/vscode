@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from 'vs/base/browser/dom';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { KeyCode } from 'vs/base/common/keyCodes';
 import { Disposable } from 'vs/base/common/lifecycle';
 import { ICodeEditor, IEditorMouseEvent, MouseTargetType } from 'vs/editor/browser/editorBrowser';
@@ -303,6 +304,10 @@ export class ContentHoverController extends Disposable implements IHoverWidget {
 
 	public async updateMarkdownHoverVerbosityLevel(action: HoverVerbosityAction, index?: number, focus?: boolean): Promise<void> {
 		this._markdownHoverParticipant?.updateMarkdownHoverVerbosityLevel(action, index, focus);
+	}
+
+	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
+		this._markdownHoverParticipant?.setMarkdownHoverRendererOptions(options);
 	}
 
 	public focusedMarkdownHoverIndex(): number {

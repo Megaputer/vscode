@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { MarkdownRenderOptions, MarkedOptions, renderMarkdown } from 'vs/base/browser/markdownRenderer';
+import { ISanitizerOptions, MarkdownRenderOptions, MarkedOptions, renderMarkdown } from 'vs/base/browser/markdownRenderer';
 import { createTrustedTypesPolicy } from 'vs/base/browser/trustedTypes';
 import { onUnexpectedError } from 'vs/base/common/errors';
 import { Emitter } from 'vs/base/common/event';
@@ -26,6 +26,7 @@ export interface IMarkdownRendererOptions {
 	readonly editor?: ICodeEditor;
 	readonly codeBlockFontFamily?: string;
 	readonly codeBlockFontSize?: string;
+	readonly sanitizerOptions?: ISanitizerOptions;
 }
 
 /**
@@ -107,7 +108,8 @@ export class MarkdownRenderer {
 			actionHandler: {
 				callback: (link) => openLinkFromMarkdown(this._openerService, link, markdown.isTrusted),
 				disposables: disposables
-			}
+			},
+			sanitizerOptions: this._options.sanitizerOptions
 		};
 	}
 }

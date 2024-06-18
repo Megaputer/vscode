@@ -5,6 +5,7 @@
 
 import { DECREASE_HOVER_VERBOSITY_ACTION_ID, INCREASE_HOVER_VERBOSITY_ACTION_ID, SHOW_OR_FOCUS_HOVER_ACTION_ID } from 'vs/editor/contrib/hover/browser/hoverActionIds';
 import { IKeyboardEvent } from 'vs/base/browser/keyboardEvent';
+import { MarkdownRenderOptions } from 'vs/base/browser/markdownRenderer';
 import { KeyCode } from 'vs/base/common/keyCodes';
 import { Disposable, DisposableStore } from 'vs/base/common/lifecycle';
 import { ICodeEditor, IEditorMouseEvent, IPartialEditorMouseEvent, MouseTargetType } from 'vs/editor/browser/editorBrowser';
@@ -431,6 +432,10 @@ export class HoverController extends Disposable implements IEditorContribution {
 
 	public updateMarkdownHoverVerbosityLevel(action: HoverVerbosityAction, index?: number, focus?: boolean): void {
 		this._getOrCreateContentWidget().updateMarkdownHoverVerbosityLevel(action, index, focus);
+	}
+
+	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
+		this._getOrCreateContentWidget().setMarkdownHoverRendererOptions(options);
 	}
 
 	public focus(): void {

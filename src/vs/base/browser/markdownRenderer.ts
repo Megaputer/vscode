@@ -39,9 +39,13 @@ export interface MarkdownRenderOptions extends FormattedTextRenderOptions {
 	readonly sanitizerOptions?: ISanitizerOptions;
 }
 
+type ConfigModifier = (original?: string[]) => string[];
+
 export interface ISanitizerOptions {
 	replaceWithPlaintext?: boolean;
 	allowedTags?: string[];
+	allowedTagsModifier?: ConfigModifier;
+	allowedAttributesModifier?: ConfigModifier;
 }
 
 const defaultMarkedRenderers = Object.freeze({
@@ -234,7 +238,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 			const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
 			return match ? html : '';
 		};
-		markedOptions.sanitize = true;
+		markedOptions.sanitize = false;
 		markedOptions.silent = true;
 	}
 
@@ -524,8 +528,8 @@ function getSanitizerOptions(options: IInternalSanitizerOptions): { config: domp
 			// Since we have our own sanitize function for marked, it's possible we missed some tag so let dompurify make sure.
 			// HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
 			// HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-			ALLOWED_TAGS: options.allowedTags ?? [...DOM.basicMarkupHtmlTags],
-			ALLOWED_ATTR: allowedMarkdownAttr,
+			ALLOWED_TAGS: options.allowedTagsModifier?.(options.allowedTags ?? [...DOM.basicMarkupHtmlTags]),
+			ALLOWED_ATTR: options.allowedAttributesModifier?.(allowedMarkdownAttr) ?? allowedMarkdownAttr,
 			ALLOW_UNKNOWN_PROTOCOLS: true,
 		},
 		allowedSchemes
