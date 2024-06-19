@@ -147,6 +147,10 @@ export class TokenizerWithStateStoreAndTextModel<TState extends IState = IState>
 		return false;
 	}
 
+	public setTokenizationInfoEmitterLineIndex(index: number) {
+		this.tokenizationSupport.setLineIndex?.(index);
+	}
+
 	/**
 	 * The result is not cached.
 	 */

@@ -1993,6 +1993,10 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 		// Columns start with 1.
 		return indentOfLine(this.getLineContent(lineNumber)) + 1;
 	}
+
+	setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenizationTextModelPart.setTokenizationInfoEmitterLineIndex(index);
+	}
 }
 
 function indentOfLine(line: string): number {

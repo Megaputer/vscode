@@ -238,6 +238,7 @@ interface IMonarchTokensCollector {
 export type TokensCollectorEmitListener = (line: number, offset: number, type: string) => void;
 export interface TokenInfoEmitter {
 	emit(offset: number, type: string): void;
+	getLineIndex(): number;
 }
 
 class MonarchClassicTokensCollector implements IMonarchTokensCollector {
@@ -322,6 +323,7 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 	}
 
 	public emit(startOffset: number, type: string): void {
+		this._emitter?.emit(startOffset, type);
 		const metadata = this._theme.match(this._currentLanguageId, type) | MetadataConsts.BALANCED_BRACKETS_MASK;
 		if (this._lastTokenMetadata === metadata) {
 			return;
@@ -329,7 +331,6 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 		this._lastTokenMetadata = metadata;
 		this._tokens.push(startOffset);
 		this._tokens.push(metadata);
-		this._emitter?.emit(startOffset, type);
 	}
 
 	private static _merge(a: Uint32Array | null, b: number[], c: Uint32Array | null): Uint32Array {
@@ -371,6 +372,9 @@ class MonarchModernTokensCollector implements IMonarchTokensCollector {
 			return embeddedModeState;
 		}
 
+		if (this._emitter) {
+			nestedLanguageTokenizationSupport.setLineIndex?.(this._emitter.getLineIndex());
+		}
 		const nestedResult = nestedLanguageTokenizationSupport.tokenizeEncoded(embeddedLanguageLine, hasEOL, embeddedModeState);
 		if (offsetDelta !== 0) {
 			for (let i = 0, len = nestedResult.tokens.length; i < len; i += 2) {
@@ -408,6 +412,10 @@ class ParsedTokenInfoEmitter implements TokenInfoEmitter {
 		if (this.line >= 0) {
 			this.listener(this.line, offset, type);
 		}
+	}
+
+	getLineIndex(): number {
+		return this.line;
 	}
 }
 

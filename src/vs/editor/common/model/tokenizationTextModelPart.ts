@@ -332,6 +332,10 @@ export class TokenizationTextModelPart extends TextModelPart implements ITokeniz
 		this._onDidChangeLanguageConfiguration.fire({});
 	}
 
+	setTokenizationInfoEmitterLineIndex(index: number) {
+		this.grammarTokens.setTokenizationInfoEmitterLineIndex(index);
+	}
+
 	// #endregion
 }
 
@@ -597,6 +601,10 @@ class GrammarTokens extends Disposable {
 		if (this.isCheapToTokenize(lineNumber)) {
 			this.forceTokenization(lineNumber);
 		}
+	}
+
+	public setTokenizationInfoEmitterLineIndex(index: number) {
+		this._tokenizer?.setTokenizationInfoEmitterLineIndex?.(index);
 	}
 
 	public getLineTokens(lineNumber: number): LineTokens {
