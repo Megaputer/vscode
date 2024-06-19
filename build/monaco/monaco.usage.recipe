@@ -23,6 +23,7 @@ import * as editorAPI from './vs/editor/editor.api';
 	a = (<HoverController>b).onFinishRender
 
 	a = (<SuggestController>b).onWillInsertSuggestItem
+	a = (<SuggestController>b).showCompletionItems
 
 	// injection madness
 	a = (<SyncDescriptor0<any>>b).ctor;

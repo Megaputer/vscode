@@ -24,7 +24,8 @@ import { Range } from 'vs/editor/common/core/range';
 import { IEditorContribution, ScrollType } from 'vs/editor/common/editorCommon';
 import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
 import { ITextModel, TrackedRangeStickiness } from 'vs/editor/common/model';
-import { CompletionItemInsertTextRule, CompletionItemProvider, CompletionTriggerKind } from 'vs/editor/common/languages';
+import { ILanguageFeaturesService } from 'vs/editor/common/services/languageFeatures';
+import { CompletionItemInsertTextRule, CompletionItemProvider, CompletionTriggerKind, CompletionItem as LanguageCompletionItem } from 'vs/editor/common/languages';
 import { SnippetController2 } from 'vs/editor/contrib/snippet/browser/snippetController2';
 import { SnippetParser } from 'vs/editor/contrib/snippet/browser/snippetParser';
 import { ISuggestMemoryService } from 'vs/editor/contrib/suggest/browser/suggestMemory';
@@ -141,6 +142,7 @@ export class SuggestController implements IEditorContribution {
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@ILogService private readonly _logService: ILogService,
 		@ITelemetryService private readonly _telemetryService: ITelemetryService,
+		@ILanguageFeaturesService private readonly _languageFeaturesService: ILanguageFeaturesService,
 	) {
 		this.editor = editor;
 		this.model = _instantiationService.createInstance(SuggestModel, this.editor,);
@@ -595,6 +597,31 @@ export class SuggestController implements IEditorContribution {
 		}
 	}
 
+	showCompletionItems(suggestions: LanguageCompletionItem[]) {
+		const model = this.editor.getModel();
+		if (!model) {
+			return;
+		}
+
+		const provider: CompletionItemProvider & IDisposable = {
+			_debugDisplayName: 'manual suggest',
+			provideCompletionItems: () => ({ suggestions }),
+			dispose: () => {
+				registration.dispose();
+			},
+		};
+		const registration = this._languageFeaturesService.completionProvider.register(
+			{ language: model.getLanguageId(), pattern: model.uri.fsPath, scheme: model.uri.scheme },
+			provider
+		);
+
+		this.triggerSuggest(
+			new Set<CompletionItemProvider>().add(provider),
+			false,
+			true
+		);
+	}
+
 	triggerSuggestAndAcceptBest(arg: { fallback: string }): void {
 		if (!this.editor.hasModel()) {
 			return;
@@ -901,13 +928,13 @@ registerEditorCommand(new SuggestCommand({
 		weight: weight,
 		kbExpr: EditorContextKeys.textInputFocus,
 		primary: KeyCode.Escape,
-		secondary: [KeyMod.Shift | KeyCode.Escape]
+		secondary: [KeyMod.Shift | KeyCode.Escape, KeyCode.RightArrow]
 	}
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectNextSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate())),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate()), SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectNextSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -932,13 +959,13 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectLastSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate())),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate()), SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectLastSuggestion()
 }));
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectPrevSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate())),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate()), SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectPrevSuggestion(),
 	kbOpts: {
 		weight: weight,
@@ -963,7 +990,7 @@ registerEditorCommand(new SuggestCommand({
 
 registerEditorCommand(new SuggestCommand({
 	id: 'selectFirstSuggestion',
-	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate())),
+	precondition: ContextKeyExpr.and(SuggestContext.Visible, ContextKeyExpr.or(SuggestContext.MultipleSuggestions, SuggestContext.HasFocusedSuggestion.negate()), SuggestContext.AtLeastOneSuggestion),
 	handler: c => c.selectFirstSuggestion()
 }));
 

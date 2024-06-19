@@ -128,6 +128,7 @@ export class SuggestWidget implements IDisposable {
 	private readonly _ctxSuggestWidgetDetailsVisible: IContextKey<boolean>;
 	private readonly _ctxSuggestWidgetMultipleSuggestions: IContextKey<boolean>;
 	private readonly _ctxSuggestWidgetHasFocusedSuggestion: IContextKey<boolean>;
+	private readonly _ctxSuggestAtLeastOneSuggestion: IContextKey<boolean>;
 
 	private readonly _showTimeout = new TimeoutTimer();
 	private readonly _disposables = new DisposableStore();
@@ -291,6 +292,7 @@ export class SuggestWidget implements IDisposable {
 		this._ctxSuggestWidgetDetailsVisible = SuggestContext.DetailsVisible.bindTo(_contextKeyService);
 		this._ctxSuggestWidgetMultipleSuggestions = SuggestContext.MultipleSuggestions.bindTo(_contextKeyService);
 		this._ctxSuggestWidgetHasFocusedSuggestion = SuggestContext.HasFocusedSuggestion.bindTo(_contextKeyService);
+		this._ctxSuggestAtLeastOneSuggestion = SuggestContext.AtLeastOneSuggestion.bindTo(_contextKeyService);
 
 		this._disposables.add(dom.addStandardDisposableListener(this._details.widget.domNode, 'keydown', e => {
 			this._onDetailsKeydown.fire(e);
@@ -454,6 +456,7 @@ export class SuggestWidget implements IDisposable {
 				this._ctxSuggestWidgetVisible.reset();
 				this._ctxSuggestWidgetMultipleSuggestions.reset();
 				this._ctxSuggestWidgetHasFocusedSuggestion.reset();
+				this._ctxSuggestAtLeastOneSuggestion.reset();
 				this._showTimeout.cancel();
 				this.element.domNode.classList.remove('visible');
 				this._list.splice(0, this._list.length);
@@ -544,6 +547,7 @@ export class SuggestWidget implements IDisposable {
 		const visibleCount = this._completionModel.items.length;
 		const isEmpty = visibleCount === 0;
 		this._ctxSuggestWidgetMultipleSuggestions.set(visibleCount > 1);
+		this._ctxSuggestAtLeastOneSuggestion.set(visibleCount > 0);
 
 		if (isEmpty) {
 			this._setState(isAuto ? State.Hidden : State.Empty);
@@ -562,8 +566,20 @@ export class SuggestWidget implements IDisposable {
 		try {
 			this._list.splice(0, this._list.length, this._completionModel.items);
 			this._setState(isFrozen ? State.Frozen : State.Open);
-			this._list.reveal(selectionIndex, 0);
-			this._list.setFocus(noFocus ? [] : [selectionIndex]);
+			if (!isAuto) {
+				this._list.reveal(selectionIndex, 0);
+				this._list.setFocus([selectionIndex]);
+			} else {
+				const items = this._completionModel.items;
+
+				const index = items.findIndex(it => it.word ? (it.word.length > 1 ? it.completion.insertText.startsWith(it.word) : false) : false);
+				if (index >= 0) {
+					this._list.reveal(index, 0);
+					this._list.setFocus([index]);
+				} else {
+					this._list.setFocus([]);
+				}
+			}
 		} finally {
 			this._onDidFocus.resume();
 			this._onDidSelect.resume();

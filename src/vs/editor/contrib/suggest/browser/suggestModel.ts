@@ -743,6 +743,14 @@ export class SuggestModel implements IDisposable {
 				}
 			}
 
+			if (this._context.triggerOptions.auto) {
+				const content = this._context.leadingLineContent;
+				if (content.match(/\s$/)) {
+					this.cancel();
+					return;
+				}
+			}
+
 			this._onDidSuggest.fire({
 				completionModel: this._completionModel,
 				triggerOptions: ctx.triggerOptions,
