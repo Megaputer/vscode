@@ -452,6 +452,7 @@ class GrammarTokens extends Disposable {
 					const newState = BackgroundTokenizationState.Completed;
 					this._backgroundTokenizationState = newState;
 					this._onDidChangeBackgroundTokenizationState.fire();
+					this._textModel.fireOnDidChangeTokenizationState(false);
 				},
 				setEndState: (lineNumber, state) => {
 					if (!this._tokenizer) { return; }
@@ -479,6 +480,7 @@ class GrammarTokens extends Disposable {
 				this._debugBackgroundTokenizer.value = tokenizationSupport.createBackgroundTokenizer(this._textModel, {
 					setTokens: (tokens) => {
 						this._debugBackgroundTokens?.setMultilineTokens(tokens, this._textModel);
+						this._textModel.fireOnDidChangeTokenizationState(false);
 					},
 					backgroundTokenizationFinished() {
 						// NO OP
@@ -550,9 +552,11 @@ class GrammarTokens extends Disposable {
 		startLineNumber = Math.max(1, Math.min(this._textModel.getLineCount(), startLineNumber));
 		endLineNumber = Math.min(this._textModel.getLineCount(), endLineNumber);
 
+		this._textModel.fireOnDidChangeTokenizationState(true);
 		const builder = new ContiguousMultilineTokensBuilder();
 		const { heuristicTokens } = this._tokenizer.tokenizeHeuristically(builder, startLineNumber, endLineNumber);
 		const changedTokens = this.setTokens(builder.finalize());
+		this._textModel.fireOnDidChangeTokenizationState(false);
 
 		if (heuristicTokens) {
 			// We overrode tokens with heuristically computed ones.
@@ -567,9 +571,11 @@ class GrammarTokens extends Disposable {
 	}
 
 	public forceTokenization(lineNumber: number): void {
+		this._textModel.fireOnDidChangeTokenizationState(true);
 		const builder = new ContiguousMultilineTokensBuilder();
 		this._tokenizer?.updateTokensUntilLine(builder, lineNumber);
 		this.setTokens(builder.finalize());
+		this._textModel.fireOnDidChangeTokenizationState(false);
 		this._defaultBackgroundTokenizer?.checkFinished();
 	}
 

@@ -102,6 +102,7 @@ export interface ITokenizationSupport {
 	 * Can be/return undefined if default background tokenization should be used.
 	 */
 	createBackgroundTokenizer?(textModel: model.ITextModel, store: IBackgroundTokenizationStore): IBackgroundTokenizer | undefined;
+	setLineIndex?(index: number): void;
 }
 
 /**

@@ -396,7 +396,7 @@ function createTokenizationSupportAdapter(languageId: string, provider: TokensPr
  * set using `setTokensProvider` or one created using `setMonarchTokensProvider`, but will work together
  * with a tokens provider set using `registerDocumentSemanticTokensProvider` or `registerDocumentRangeSemanticTokensProvider`.
  */
-export function registerTokensProviderFactory(languageId: string, factory: TokensProviderFactory): IDisposable {
+export function registerTokensProviderFactory(languageId: string, factory: TokensProviderFactory, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable {
 	const adaptedFactory = new languages.LazyTokenizationSupport(async () => {
 		const result = await Promise.resolve(factory.create());
 		if (!result) {
@@ -405,7 +405,13 @@ export function registerTokensProviderFactory(languageId: string, factory: Token
 		if (isATokensProvider(result)) {
 			return createTokenizationSupportAdapter(languageId, result);
 		}
-		return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, result), StandaloneServices.get(IConfigurationService));
+		return new MonarchTokenizer(
+			StandaloneServices.get(ILanguageService),
+			StandaloneServices.get(IStandaloneThemeService),
+			languageId, compile(languageId, result),
+			StandaloneServices.get(IConfigurationService),
+			onTokenParsed
+		);
 	});
 	return languages.TokenizationRegistry.registerFactory(languageId, adaptedFactory);
 }
@@ -416,13 +422,13 @@ export function registerTokensProviderFactory(languageId: string, factory: Token
  * but will work together with a tokens provider set using `registerDocumentSemanticTokensProvider`
  * or `registerDocumentRangeSemanticTokensProvider`.
  */
-export function setTokensProvider(languageId: string, provider: TokensProvider | EncodedTokensProvider | Thenable<TokensProvider | EncodedTokensProvider>): IDisposable {
+export function setTokensProvider(languageId: string, provider: TokensProvider | EncodedTokensProvider | Thenable<TokensProvider | EncodedTokensProvider>, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable {
 	const languageService = StandaloneServices.get(ILanguageService);
 	if (!languageService.isRegisteredLanguageId(languageId)) {
 		throw new Error(`Cannot set tokens provider for unknown language ${languageId}`);
 	}
 	if (isThenable<TokensProvider | EncodedTokensProvider>(provider)) {
-		return registerTokensProviderFactory(languageId, { create: () => provider });
+		return registerTokensProviderFactory(languageId, { create: () => provider }, onTokenParsed);
 	}
 	return languages.TokenizationRegistry.register(languageId, createTokenizationSupportAdapter(languageId, provider));
 }
@@ -433,12 +439,12 @@ export function setTokensProvider(languageId: string, provider: TokensProvider |
  * work together with a tokens provider set using `registerDocumentSemanticTokensProvider` or
  * `registerDocumentRangeSemanticTokensProvider`.
  */
-export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>): IDisposable {
+export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable {
 	const create = (languageDef: IMonarchLanguage) => {
-		return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, languageDef), StandaloneServices.get(IConfigurationService));
+		return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, languageDef), StandaloneServices.get(IConfigurationService), onTokenParsed);
 	};
 	if (isThenable<IMonarchLanguage>(languageDef)) {
-		return registerTokensProviderFactory(languageId, { create: () => languageDef });
+		return registerTokensProviderFactory(languageId, { create: () => languageDef }, onTokenParsed);
 	}
 	return languages.TokenizationRegistry.register(languageId, create(languageDef));
 }

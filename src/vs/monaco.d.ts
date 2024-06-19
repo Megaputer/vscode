@@ -2411,6 +2411,11 @@ declare namespace monaco.editor {
 		 */
 		readonly onDidChangeLanguageConfiguration: IEvent<IModelLanguageConfigurationChangedEvent>;
 		/**
+		 * An event emitted when the tokenization started or finished
+		 * @event
+		 */
+		readonly onDidChangeTokenizationState: IEvent<boolean>;
+		/**
 		 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 		 * @event
 		 */
@@ -6470,7 +6475,7 @@ declare namespace monaco.languages {
 	 * set using `setTokensProvider` or one created using `setMonarchTokensProvider`, but will work together
 	 * with a tokens provider set using `registerDocumentSemanticTokensProvider` or `registerDocumentRangeSemanticTokensProvider`.
 	 */
-	export function registerTokensProviderFactory(languageId: string, factory: TokensProviderFactory): IDisposable;
+	export function registerTokensProviderFactory(languageId: string, factory: TokensProviderFactory, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable;
 
 	/**
 	 * Set the tokens provider for a language (manual implementation). This tokenizer will be exclusive
@@ -6478,7 +6483,7 @@ declare namespace monaco.languages {
 	 * but will work together with a tokens provider set using `registerDocumentSemanticTokensProvider`
 	 * or `registerDocumentRangeSemanticTokensProvider`.
 	 */
-	export function setTokensProvider(languageId: string, provider: TokensProvider | EncodedTokensProvider | Thenable<TokensProvider | EncodedTokensProvider>): IDisposable;
+	export function setTokensProvider(languageId: string, provider: TokensProvider | EncodedTokensProvider | Thenable<TokensProvider | EncodedTokensProvider>, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable;
 
 	/**
 	 * Set the tokens provider for a language (monarch implementation). This tokenizer will be exclusive
@@ -6486,7 +6491,7 @@ declare namespace monaco.languages {
 	 * work together with a tokens provider set using `registerDocumentSemanticTokensProvider` or
 	 * `registerDocumentRangeSemanticTokensProvider`.
 	 */
-	export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>): IDisposable;
+	export function setMonarchTokensProvider(languageId: string, languageDef: IMonarchLanguage | Thenable<IMonarchLanguage>, onTokenParsed?: (line: number, startOffset: number, type: string) => void): IDisposable;
 
 	/**
 	 * Register a reference provider (used by e.g. reference search).

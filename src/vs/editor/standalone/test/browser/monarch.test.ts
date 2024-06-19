@@ -21,7 +21,8 @@ suite('Monarch', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createMonarchTokenizer(languageService: ILanguageService, languageId: string, language: IMonarchLanguage, configurationService: IConfigurationService): MonarchTokenizer {
-		return new MonarchTokenizer(languageService, null!, languageId, compile(languageId, language), configurationService);
+		const stub = () => { };
+		return new MonarchTokenizer(languageService, null!, languageId, compile(languageId, language), configurationService, stub);
 	}
 
 	function getTokens(tokenizer: MonarchTokenizer, lines: string[]): Token[][] {

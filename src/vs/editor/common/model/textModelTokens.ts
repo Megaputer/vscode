@@ -66,6 +66,7 @@ export class TokenizerWithStateStoreAndTextModel<TState extends IState = IState>
 
 			const text = this._textModel.getLineContent(lineToTokenize.lineNumber);
 
+			this.tokenizationSupport.setLineIndex?.(lineNumber);
 			const r = safeTokenize(this._languageIdCodec, languageId, this.tokenizationSupport, text, true, lineToTokenize.startState);
 			builder.add(lineToTokenize.lineNumber, r.tokens);
 			this.store.setEndState(lineToTokenize.lineNumber, r.endState as TState);

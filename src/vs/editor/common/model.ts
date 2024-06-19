@@ -1244,6 +1244,11 @@ export interface ITextModel {
 	 */
 	readonly onDidChangeTokens: Event<IModelTokensChangedEvent>;
 	/**
+	 * An event emitted when the tokenization started or finished
+	 * @event
+	 */
+	readonly onDidChangeTokenizationState: Event<boolean>;
+	/**
 	 * An event emitted when the model has been attached to the first editor or detached from the last editor.
 	 * @event
 	 */

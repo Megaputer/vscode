@@ -236,6 +236,12 @@ export class TextModel extends Disposable implements model.ITextModel, IDecorati
 			this._onDidChangeInjectedText.event(e => listener(e))
 		);
 	}
+
+	private readonly _onDidChangeTokenizationState: Emitter<boolean> = this._register(new Emitter<boolean>());
+	public readonly onDidChangeTokenizationState: Event<boolean> = this._onDidChangeTokenizationState.event;
+	public fireOnDidChangeTokenizationState(started: boolean) {
+		this._onDidChangeTokenizationState.fire(started);
+	}
 	//#endregion
 
 	public readonly id: string;
