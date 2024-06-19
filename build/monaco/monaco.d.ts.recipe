@@ -116,7 +116,7 @@ export interface ICommandMetadata {
 #includeAll(vs/editor/common/model): IScrollEvent
 #include(vs/editor/common/diff/legacyLinesDiffComputer): IChange, ICharChange, ILineChange
 #include(vs/editor/common/core/dimension): IDimension
-#includeAll(vs/editor/common/editorCommon): IScrollEvent
+#includeAll(vs/editor/common/editorCommon;CompletionItem=>languages.CompletionItem): IScrollEvent
 #includeAll(vs/editor/common/textModelEvents):
 #includeAll(vs/editor/common/cursorEvents):
 #include(vs/platform/accessibility/common/accessibility): AccessibilitySupport

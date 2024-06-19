@@ -539,7 +539,7 @@ export class SuggestModel implements IDisposable {
 				fuzzySearchOptions,
 				clipboardText,
 				this._editorCompletionService.getScorer(),
-				this._editorCompletionService.getCompletionListItemSelectorMethod(),
+				this._editor.getCompletionListItemSelectorMethod(),
 			);
 
 			// store containers so that they can be disposed later

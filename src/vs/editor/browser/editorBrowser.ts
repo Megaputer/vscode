@@ -1169,6 +1169,16 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * This is the best place to compute data for the viewport (such as tokens).
 	 */
 	handleInitialized?(): void;
+
+	/**
+	 * Set a custom completion list item selection method.
+	 */
+	setCompletionListItemSelectorMethod(method: editorCommon.CompletionListItemSelectionMethod): void;
+
+	/**
+	 * Get a custom completion list item selection method.
+	 */
+	getCompletionListItemSelectorMethod(): editorCommon.CompletionListItemSelectionMethod | undefined;
 }
 
 /**

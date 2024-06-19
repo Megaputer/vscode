@@ -8,7 +8,8 @@ import { CharCode } from 'vs/base/common/charCode';
 import { anyScore, fuzzyScore, FuzzyScore, fuzzyScoreGracefulAggressive, FuzzyScoreOptions, FuzzyScorer } from 'vs/base/common/filters';
 import { compareIgnoreCase } from 'vs/base/common/strings';
 import { InternalSuggestOptions } from 'vs/editor/common/config/editorOptions';
-import { CompletionItemKind, CompletionItemProvider, CompletionListItemSelectionMethod } from 'vs/editor/common/languages';
+import { CompletionListItemSelectionMethod } from 'vs/editor/common/editorCommon';
+import { CompletionItemKind, CompletionItemProvider } from 'vs/editor/common/languages';
 import { WordDistance } from 'vs/editor/contrib/suggest/browser/wordDistance';
 import { CompletionItem } from './suggest';
 

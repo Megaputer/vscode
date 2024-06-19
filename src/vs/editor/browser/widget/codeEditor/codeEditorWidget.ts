@@ -241,6 +241,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	private _dropIntoEditorDecorations: EditorDecorationsCollection = this.createDecorationsCollection();
 
+	private completionListItemSelector?: editorCommon.CompletionListItemSelectionMethod;
+
 	constructor(
 		domElement: HTMLElement,
 		_options: Readonly<IEditorConstructionOptions>,
@@ -1910,6 +1912,14 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	public hasModel(): this is editorBrowser.IActiveCodeEditor {
 		return (this._modelData !== null);
+	}
+
+	public setCompletionListItemSelectorMethod(method: editorCommon.CompletionListItemSelectionMethod) {
+		this.completionListItemSelector = method;
+	}
+
+	public getCompletionListItemSelectorMethod(): editorCommon.CompletionListItemSelectionMethod | undefined {
+		return this.completionListItemSelector;
 	}
 
 	private showDropIndicatorAt(position: Position): void {

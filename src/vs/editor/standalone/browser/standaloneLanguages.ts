@@ -16,7 +16,6 @@ import { ILanguageConfigurationService } from 'vs/editor/common/languages/langua
 import { ModesRegistry } from 'vs/editor/common/languages/modesRegistry';
 import { LanguageSelector } from 'vs/editor/common/languageSelector';
 import * as model from 'vs/editor/common/model';
-import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { ILanguageFeaturesService } from 'vs/editor/common/services/languageFeatures';
 import * as standaloneEnums from 'vs/editor/common/standalone/standaloneEnums';
 import { StandaloneServices } from 'vs/editor/standalone/browser/standaloneServices';
@@ -700,14 +699,6 @@ export function registerInlayHintsProvider(languageSelector: LanguageSelector, p
 }
 
 /**
- * Register a custom completion list item selection method.
- */
-export function registerCompletionListItemSelectorMethod(method: languages.CompletionListItemSelectionMethod): void {
-	const completionService = StandaloneServices.get(IEditorCompletionService);
-	completionService.registerCompletionListItemSelectorMethod(method);
-}
-
-/**
  * Contains additional diagnostic information about the context in which
  * a [code action](#CodeActionProvider.provideCodeActions) is run.
  */
@@ -808,7 +799,6 @@ export function createMonacoLanguagesAPI(): typeof monaco.languages {
 		registerInlineCompletionsProvider: <any>registerInlineCompletionsProvider,
 		registerInlineEditProvider: <any>registerInlineEditProvider,
 		registerInlayHintsProvider: <any>registerInlayHintsProvider,
-		registerCompletionListItemSelectorMethod: <any>registerCompletionListItemSelectorMethod,
 
 		// enums
 		DocumentHighlightKind: standaloneEnums.DocumentHighlightKind,
