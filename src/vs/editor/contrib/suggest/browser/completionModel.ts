@@ -8,7 +8,7 @@ import { CharCode } from 'vs/base/common/charCode';
 import { anyScore, fuzzyScore, FuzzyScore, fuzzyScoreGracefulAggressive, FuzzyScoreOptions, FuzzyScorer } from 'vs/base/common/filters';
 import { compareIgnoreCase } from 'vs/base/common/strings';
 import { InternalSuggestOptions } from 'vs/editor/common/config/editorOptions';
-import { CompletionItemKind, CompletionItemProvider } from 'vs/editor/common/languages';
+import { CompletionItemKind, CompletionItemProvider, CompletionListItemSelectionMethod } from 'vs/editor/common/languages';
 import { WordDistance } from 'vs/editor/contrib/suggest/browser/wordDistance';
 import { CompletionItem } from './suggest';
 
@@ -59,7 +59,8 @@ export class CompletionModel {
 		snippetSuggestions: 'top' | 'bottom' | 'inline' | 'none',
 		fuzzyScoreOptions: FuzzyScoreOptions | undefined = FuzzyScoreOptions.default,
 		readonly clipboardText: string | undefined = undefined,
-		private _customScoreMethod?: FuzzyScorer
+		private _customScoreMethod?: FuzzyScorer,
+		readonly customCompletionListItemSelectorMethod?: CompletionListItemSelectionMethod,
 	) {
 		this._items = items;
 		this._column = column;

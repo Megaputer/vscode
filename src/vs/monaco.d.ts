@@ -6634,6 +6634,11 @@ declare namespace monaco.languages {
 	export function registerInlayHintsProvider(languageSelector: LanguageSelector, provider: InlayHintsProvider): IDisposable;
 
 	/**
+	 * Register a custom completion list item selection method.
+	 */
+	export function registerCompletionListItemSelectorMethod(method: CompletionListItemSelectionMethod): void;
+
+	/**
 	 * Contains additional diagnostic information about the context in which
 	 * a [code action](#CodeActionProvider.provideCodeActions) is run.
 	 */
@@ -7151,6 +7156,13 @@ declare namespace monaco.languages {
 	export interface PartialAcceptInfo {
 		kind: PartialAcceptTriggerKind;
 	}
+
+	export type CompletionItemInfo = {
+		completion: CompletionItem;
+		word?: string;
+	};
+
+	export type CompletionListItemSelectionMethod = (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
 
 	/**
 	 * How a partial acceptance was triggered.

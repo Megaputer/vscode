@@ -41,7 +41,7 @@ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { IMarker, IMarkerData, IMarkerService } from 'vs/platform/markers/common/markers';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { MultiDiffEditorWidget } from 'vs/editor/browser/widget/multiDiffEditor/multiDiffEditorWidget';
-import { IEditorCompletionScoreService } from 'vs/editor/common/services/editorCompletionScoreService';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 
 /**
  * Create a new editor under `domElement`.
@@ -445,8 +445,8 @@ export function registerCommand(id: string, handler: (accessor: any, ...args: an
  * Register a custom completion score method.
  */
 export function registerCompletionScoreMethod(scorer: FuzzyScorer): void {
-	const completionScoreService = StandaloneServices.get(IEditorCompletionScoreService);
-	completionScoreService.registerCompletionScoreMethod(scorer);
+	const completionService = StandaloneServices.get(IEditorCompletionService);
+	completionService.registerCompletionScoreMethod(scorer);
 }
 
 export interface ILinkOpener {

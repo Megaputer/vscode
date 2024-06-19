@@ -17,7 +17,7 @@ import { Selection } from 'vs/editor/common/core/selection';
 import { ITextModel } from 'vs/editor/common/model';
 import { CompletionContext, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind } from 'vs/editor/common/languages';
 import { IEditorWorkerService } from 'vs/editor/common/services/editorWorker';
-import { IEditorCompletionScoreService } from 'vs/editor/common/services/editorCompletionScoreService';
+import { IEditorCompletionService } from 'vs/editor/common/services/editorCompletionService';
 import { WordDistance } from 'vs/editor/contrib/suggest/browser/wordDistance';
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
@@ -161,7 +161,7 @@ export class SuggestModel implements IDisposable {
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@ILanguageFeaturesService private readonly _languageFeaturesService: ILanguageFeaturesService,
 		@IEnvironmentService private readonly _envService: IEnvironmentService,
-		@IEditorCompletionScoreService private readonly _editorCompletionScoreService: IEditorCompletionScoreService
+		@IEditorCompletionService private readonly _editorCompletionService: IEditorCompletionService
 	) {
 		this._currentSelection = this._editor.getSelection() || new Selection(1, 1, 1, 1);
 
@@ -538,7 +538,8 @@ export class SuggestModel implements IDisposable {
 				this._editor.getOption(EditorOption.snippetSuggestions),
 				fuzzySearchOptions,
 				clipboardText,
-				this._editorCompletionScoreService.getScorer(),
+				this._editorCompletionService.getScorer(),
+				this._editorCompletionService.getCompletionListItemSelectorMethod(),
 			);
 
 			// store containers so that they can be disposed later

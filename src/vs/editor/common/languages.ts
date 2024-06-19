@@ -595,6 +595,11 @@ export interface PartialAcceptInfo {
 	kind: PartialAcceptTriggerKind;
 }
 
+export type CompletionItemInfo = { completion: CompletionItem; word?: string };
+
+export type CompletionListItemSelectionMethod
+	= (isAuto: boolean, selectionIndex: number, items: CompletionItemInfo[]) => number;
+
 /**
  * How a partial acceptance was triggered.
  */

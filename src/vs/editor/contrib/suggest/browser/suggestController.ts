@@ -97,6 +97,10 @@ class LineSuffix {
 		// the cursor to the line end.
 		if (this._marker) {
 			const range = this._model.getDecorationRange(this._marker);
+			if (!range) {
+				return this._model.getLineMaxColumn(position.lineNumber) - position.column;
+			}
+
 			const end = this._model.getOffsetAt(range!.getStartPosition());
 			return end - this._model.getOffsetAt(position);
 		} else {
