@@ -511,13 +511,14 @@ function getSanitizerOptions(options: IInternalSanitizerOptions): { config: domp
 		allowedSchemes.push(Schemas.command);
 	}
 
+	const tagsModifier = options.allowedTagsModifier;
 	return {
 		config: {
 			// allowedTags should included everything that markdown renders to.
 			// Since we have our own sanitize function for marked, it's possible we missed some tag so let dompurify make sure.
 			// HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
 			// HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-			ALLOWED_TAGS: options.allowedTagsModifier?.(options.allowedTags ?? [...DOM.basicMarkupHtmlTags]),
+			ALLOWED_TAGS: tagsModifier ? tagsModifier(options.allowedTags ?? [...DOM.basicMarkupHtmlTags]) : [...DOM.basicMarkupHtmlTags],
 			ALLOWED_ATTR: options.allowedAttributesModifier?.(allowedMarkdownAttr) ?? allowedMarkdownAttr,
 			ALLOW_UNKNOWN_PROTOCOLS: true,
 		},

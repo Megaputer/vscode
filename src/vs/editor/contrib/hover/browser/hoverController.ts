@@ -493,4 +493,12 @@ export class HoverController extends Disposable implements IEditorContribution {
 		this._glyphWidget?.dispose();
 		this._contentWidget?.dispose();
 	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._getOrCreateContentWidget().getLastHoveredRange();
+	}
+
+	public onFinishRender(listener: (element: HTMLElement) => void) {
+		return this._getOrCreateContentWidget().onFinisRender(listener);
+	}
 }

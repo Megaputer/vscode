@@ -40,6 +40,9 @@ export class ContentHoverController extends Disposable implements IHoverWidget {
 	private readonly _onContentsChanged = this._register(new Emitter<void>());
 	public readonly onContentsChanged = this._onContentsChanged.event;
 
+	private readonly _onFinisRender = this._register(new Emitter<HTMLElement>());
+	public readonly onFinisRender = this._onFinisRender.event;
+
 	constructor(
 		private readonly _editor: ICodeEditor,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
@@ -225,6 +228,7 @@ export class ContentHoverController extends Disposable implements IHoverWidget {
 		const renderedHover = new RenderedContentHover(this._editor, hoverResult, this._participants, this._computer, context, this._keybindingService);
 		if (renderedHover.domNodeHasChildren) {
 			this._contentHoverWidget.show(renderedHover);
+			this._onFinisRender.fire(this._contentHoverWidget.getDomNode());
 		} else {
 			renderedHover.dispose();
 		}
@@ -374,6 +378,10 @@ export class ContentHoverController extends Disposable implements IHoverWidget {
 		this._computer.anchor = null;
 		this._hoverOperation.cancel();
 		this._setCurrentResult(null);
+	}
+
+	public getLastHoveredRange(): Range | undefined {
+		return this._currentResult?.anchor?.range;
 	}
 
 	public get isColorPickerVisible(): boolean {

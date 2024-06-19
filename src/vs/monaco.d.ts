@@ -522,6 +522,16 @@ declare namespace monaco {
 		stopPropagation(): void;
 	}
 
+	export interface IMouseWheelEvent extends MouseEvent {
+		readonly wheelDelta: number;
+		readonly wheelDeltaX: number;
+		readonly wheelDeltaY: number;
+		readonly deltaX: number;
+		readonly deltaY: number;
+		readonly deltaZ: number;
+		readonly deltaMode: number;
+	}
+
 	export interface IScrollEvent {
 		readonly scrollTop: number;
 		readonly scrollLeft: number;
@@ -2357,6 +2367,24 @@ declare namespace monaco.editor {
 		 * This can have dire consequences on the undo stack! See @pushEOL for the preferred way.
 		 */
 		setEOL(eol: EndOfLineSequence): void;
+		/**
+		 * Undo edit operations until the previous undo/redo point.
+		 * The inverse edit operations will be pushed on the redo stack.
+		 */
+		undo(): void | Promise<void>;
+		/**
+		 * Is there anything in the undo stack?
+		 */
+		canUndo(): boolean;
+		/**
+		 * Redo edit operations until the next undo/redo point.
+		 * The inverse edit operations will be pushed on the undo stack.
+		 */
+		redo(): void | Promise<void>;
+		/**
+		 * Is there anything in the redo stack?
+		 */
+		canRedo(): boolean;
 		/**
 		 * An event emitted when the contents of the model have changed.
 		 * @event
@@ -5848,6 +5876,11 @@ declare namespace monaco.editor {
 		 * @event
 		 */
 		readonly onMouseLeave: IEvent<IPartialEditorMouseEvent>;
+		/**
+		 * An event emitted on a "mousewheel"
+		 * @event
+		 */
+		readonly onMouseWheel: IEvent<IMouseWheelEvent>;
 		/**
 		 * An event emitted on a "keyup".
 		 * @event
