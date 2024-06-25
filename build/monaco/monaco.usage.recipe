@@ -8,6 +8,7 @@ import { create as create1 } from './vs/base/common/worker/simpleWorker';
 import { create as create2 } from './vs/editor/common/services/editorSimpleWorker';
 import { HoverController } from './vs/editor/contrib/hover/browser/hoverController';
 import { SuggestController } from './vs/editor/contrib/suggest/browser/suggestController';
+import { TextModel } from './vs/editor/common/model/textModel';
 import { SyncDescriptor0 } from './vs/platform/instantiation/common/descriptors';
 import * as editorAPI from './vs/editor/editor.api';
 
@@ -24,6 +25,8 @@ import * as editorAPI from './vs/editor/editor.api';
 
 	a = (<SuggestController>b).onWillInsertSuggestItem
 	a = (<SuggestController>b).showCompletionItems
+
+	a = (<TextModel>b).setTokenizationInfoEmitterLineIndex
 
 	// injection madness
 	a = (<SyncDescriptor0<any>>b).ctor;

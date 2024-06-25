@@ -326,7 +326,8 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			const action = new DefinitionAction({ openToSide, openInPeek: canPeek, muteMessage: true }, { title: { value: '', original: '' }, id: '', precondition: undefined });
 			if (this.useAlternativeCommand) {
 				const altActionId = this.editor.getOption(EditorOption.gotoLocation).alternativeDefinitionCommand;
-				return altActionId ? this.editor.getAction(altActionId)?.run() : Promise.resolve();
+				const action = altActionId ? this.editor.getAction(altActionId) : null;
+				return action !== null ? action.run() : Promise.resolve();
 			} else {
 				return action.run(accessor, this.editor);
 			}

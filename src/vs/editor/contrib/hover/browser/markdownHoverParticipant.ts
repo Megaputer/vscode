@@ -81,6 +81,7 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 
 	public readonly hoverOrdinal: number = 3;
 
+	private _markdownRendererOptions: MarkdownRenderOptions = {};
 	private _renderedHoverParts: MarkdownRenderedHoverParts | undefined;
 
 	constructor(
@@ -187,7 +188,8 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 			this._keybindingService,
 			this._hoverService,
 			this._configurationService,
-			context.onContentsChanged
+			context.onContentsChanged,
+			this._markdownRendererOptions
 		);
 		return this._renderedHoverParts;
 	}
@@ -209,7 +211,7 @@ export class MarkdownHoverParticipant implements IEditorHoverParticipant<Markdow
 	}
 
 	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
-		this._renderedHoverParts?.setMarkdownHoverRendererOptions(options);
+		this._markdownRendererOptions = options;
 	}
 }
 
@@ -224,7 +226,6 @@ class MarkdownRenderedHoverParts extends Disposable {
 	private _renderedHoverParts: RenderedHoverPart[];
 	private _focusedHoverPartIndex: number = -1;
 	private _ongoingHoverOperations: Map<HoverProvider, { verbosityDelta: number; tokenSource: CancellationTokenSource }> = new Map();
-	private _markdownRendererOptions: MarkdownRenderOptions = {};
 
 	constructor(
 		hoverParts: MarkdownHover[], // we own!
@@ -236,6 +237,7 @@ class MarkdownRenderedHoverParts extends Disposable {
 		private readonly _hoverService: IHoverService,
 		private readonly _configurationService: IConfigurationService,
 		private readonly _onFinishedRendering: () => void,
+		private readonly _markdownRendererOptions: MarkdownRenderOptions = {}
 	) {
 		super();
 		this._renderedHoverParts = this._renderHoverParts(hoverParts, hoverPartsContainer, this._onFinishedRendering);
@@ -322,6 +324,7 @@ class MarkdownRenderedHoverParts extends Disposable {
 			onFinishedRendering,
 			this._markdownRendererOptions
 		));
+
 		return { renderedMarkdown, disposables };
 	}
 
@@ -370,10 +373,6 @@ class MarkdownRenderedHoverParts extends Disposable {
 			this._focusOnHoverPartWithIndex(indexOfInterest);
 		}
 		this._onFinishedRendering();
-	}
-
-	public setMarkdownHoverRendererOptions(options: MarkdownRenderOptions) {
-		this._markdownRendererOptions = options;
 	}
 
 	public markdownHoverContentAtIndex(index: number): string {

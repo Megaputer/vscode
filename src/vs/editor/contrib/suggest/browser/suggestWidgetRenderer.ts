@@ -205,7 +205,7 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 			const extendedTheme = this._themeService.extendedCompletionItemKindTheme;
 			const externalIcon = !extendedTheme ? undefined : extendedTheme.getIconClassName(completion.kind);
 			if (externalIcon) {
-				data.iconContainer.classList.add('suggest-icon', externalIcon);
+				data.iconContainer.classList.add('suggest-icon', ...externalIcon.split(' '));
 			} else {
 				data.iconContainer.classList.add('suggest-icon', ...ThemeIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind)));
 			}

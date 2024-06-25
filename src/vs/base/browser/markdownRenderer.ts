@@ -248,7 +248,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 			const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
 			return match ? html : '';
 		};
-		markedOptions.sanitize = false;
+		markedOptions.sanitize = true;
 		markedOptions.silent = true;
 	}
 

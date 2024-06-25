@@ -1321,6 +1321,8 @@ export interface ITextModel {
 	 * @internal
 	 */
 	readonly tokenization: ITokenizationTextModelPart;
+
+	setTokenizationInfoEmitterLineIndex(index: number): void;
 }
 
 /**

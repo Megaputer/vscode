@@ -2433,6 +2433,7 @@ declare namespace monaco.editor {
 		 * Returns if this model is attached to an editor or not.
 		 */
 		isAttachedToEditor(): boolean;
+		setTokenizationInfoEmitterLineIndex(index: number): void;
 	}
 
 	export enum PositionAffinity {
