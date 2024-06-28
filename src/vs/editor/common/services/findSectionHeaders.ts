@@ -36,12 +36,13 @@ export interface SectionHeader {
 	shouldBeInComments: boolean;
 }
 
-let markRegex: RegExp;
-try {
-	markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
-} catch (error) {
-	markRegex = new RegExp('\\bMARK:\\s*(.*)$');
-}
+const markRegex: RegExp = (() => {
+	try {
+		return new RegExp('\\bMARK:\\s*(.*)$', 'd');
+	} catch (error) {
+		return new RegExp('\\bMARK:\\s*(.*)$');
+	}
+})();
 
 const trimDashesRegex = /^-+|-+$/g;
 
