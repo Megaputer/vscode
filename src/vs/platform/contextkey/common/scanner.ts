@@ -7,6 +7,36 @@ import { CharCode } from 'vs/base/common/charCode';
 import { illegalState } from 'vs/base/common/errors';
 import { localize } from 'vs/nls';
 
+class BackwardsCompatibleRegExp {
+
+	private _actual: RegExp | null;
+	private _evaluated: boolean;
+
+	constructor(
+		private readonly _pattern: string,
+		private readonly _flags: string
+	) {
+		this._actual = null;
+		this._evaluated = false;
+	}
+
+	public get(): RegExp | null {
+		if (!this._evaluated) {
+			this._evaluated = true;
+			try {
+				this._actual = new RegExp(this._pattern, this._flags);
+			} catch (err) {
+				// this browser does not support this regular expression
+			}
+		}
+		return this._actual;
+	}
+
+	public isSupported(): boolean {
+		return (this.get() !== null);
+	}
+}
+
 export const enum TokenType {
 	LParen,
 	RParen,
@@ -299,10 +329,15 @@ export class Scanner {
 	}
 
 	// u - unicode, y - sticky // TODO@ulugbekna: we accept double quotes as part of the string rather than as a delimiter (to preserve old parser's behavior)
-	private stringRe = /[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+/uy;
+	// private stringRe = /[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+/uy;
+	private stringRe = new BackwardsCompatibleRegExp('[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+', 'uy');
 	private _string() {
-		this.stringRe.lastIndex = this._start;
-		const match = this.stringRe.exec(this._input);
+		const stringRe = this.stringRe?.get();
+		if (stringRe) {
+			stringRe.lastIndex = this._start;
+		}
+
+		const match = stringRe?.exec(this._input);
 		if (match) {
 			this._current = this._start + match[0].length;
 			const lexeme = this._input.substring(this._start, this._current);

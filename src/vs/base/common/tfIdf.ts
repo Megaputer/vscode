@@ -85,14 +85,14 @@ export class TfIdfCalculator {
 		const normalize = (word: string) => word.toLowerCase();
 
 		// Only match on words that are at least 3 characters long and start with a letter
-		for (const [word] of input.matchAll(/\b\p{Letter}[\p{Letter}\d]{2,}\b/gu)) {
+		for (const word of input.split(/\s+/g)) {
 			yield normalize(word);
 
 			const camelParts = word.replace(/([a-z])([A-Z])/g, '$1 $2').split(/\s+/g);
 			if (camelParts.length > 1) {
 				for (const part of camelParts) {
 					// Require at least 3 letters in the parts of a camel case word
-					if (part.length > 2 && /\p{Letter}{3,}/gu.test(part)) {
+					if (part.length > 2 && /[a-zA-Z]{3,}/gu.test(part)) {
 						yield normalize(part);
 					}
 				}

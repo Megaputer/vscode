@@ -2255,7 +2255,7 @@ type TagToRecord<TTag> = TagToElementAndId<TTag> extends { element: infer TEleme
 
 type Child = HTMLElement | string | Record<string, HTMLElement>;
 
-const H_REGEX = /(?<tag>[\w\-]+)?(?:#(?<id>[\w\-]+))?(?<class>(?:\.(?:[\w\-]+))*)(?:@(?<name>(?:[\w\_])+))?/;
+const H_REGEX = new RegExp('(?<tag>[\w\-]+)?(?:#(?<id>[\w\-]+))?(?<class>(?:\.(?:[\w\-]+))*)(?:@(?<name>(?:[\w\_])+))?');
 
 /**
  * A helper function to create nested dom nodes.

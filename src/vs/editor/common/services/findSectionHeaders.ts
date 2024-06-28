@@ -36,7 +36,13 @@ export interface SectionHeader {
 	shouldBeInComments: boolean;
 }
 
-const markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
+let markRegex: RegExp;
+try {
+	markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
+} catch (error) {
+	markRegex = new RegExp('\\bMARK:\\s*(.*)$');
+}
+
 const trimDashesRegex = /^-+|-+$/g;
 
 /**
@@ -95,9 +101,9 @@ function collectMarkHeaders(model: ISectionHeaderFinderTarget): SectionHeader[] 
 function addMarkHeaderIfFound(lineContent: string, lineNumber: number, sectionHeaders: SectionHeader[]) {
 	markRegex.lastIndex = 0;
 	const match = markRegex.exec(lineContent);
-	if (match) {
-		const column = match.indices![1][0] + 1;
-		const endColumn = match.indices![1][1] + 1;
+	if (match && match.indices) {
+		const column = match.indices[1][0] + 1;
+		const endColumn = match.indices[1][1] + 1;
 		const range = { startLineNumber: lineNumber, startColumn: column, endLineNumber: lineNumber, endColumn: endColumn };
 		if (range.endColumn > range.startColumn) {
 			const sectionHeader = {
