@@ -330,7 +330,7 @@ export class Scanner {
 
 	// u - unicode, y - sticky // TODO@ulugbekna: we accept double quotes as part of the string rather than as a delimiter (to preserve old parser's behavior)
 	// private stringRe = /[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+/uy;
-	private stringRe = new BackwardsCompatibleRegExp('[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+', 'uy');
+	private stringRe = new BackwardsCompatibleRegExp('[a-zA-Z0-9_<>\\-\\./\\\\:\\*\\?\\+\\[\\]\\^,#@;"%\\$\\p{L}-]+', 'uy');
 	private _string() {
 		const stringRe = this.stringRe?.get();
 		if (stringRe) {
