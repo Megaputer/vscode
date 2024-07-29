@@ -27,7 +27,7 @@ import * as nls from 'vs/nls';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
 import { DefinitionAction } from '../goToCommands';
-import { getDefinitionsAtPosition, getReferencesAtPosition } from '../goToSymbol';
+import { getDefinitionsAtPosition } from '../goToSymbol';
 import { IWordAtPosition } from 'vs/editor/common/core/wordHelper';
 import { ILanguageFeaturesService } from 'vs/editor/common/services/languageFeatures';
 import { ModelDecorationInjectedTextOptions } from 'vs/editor/common/model/textModel';
@@ -42,8 +42,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 	private readonly toUnhookForKeyboard = new DisposableStore();
 	private readonly linkDecorations: IEditorDecorationsCollection;
 	private currentWordAtPosition: IWordAtPosition | null = null;
-	private previousPromise: CancelablePromise<[LocationLink[], boolean] | null> | null = null;
-	private useAlternativeCommand = false;
+	private previousPromise: CancelablePromise<LocationLink[] | null> | null = null;
 
 	constructor(
 		editor: ICodeEditor,
@@ -155,29 +154,21 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			this.previousPromise = null;
 		}
 
-		this.previousPromise = createCancelablePromise(token => this.findDefinitionOrReference(position, token));
+		this.previousPromise = createCancelablePromise(token => this.findDefinition(position, token));
 
-		let result: [LocationLink[], boolean] | null;
+		let results: LocationLink[] | null;
 		try {
-			result = await this.previousPromise;
+			results = await this.previousPromise;
 
 		} catch (error) {
 			onUnexpectedError(error);
 			return;
 		}
 
-		if (!result) {
+		if (!results || !results.length || !state.validate(this.editor)) {
 			this.removeLinkDecorations();
 			return;
 		}
-
-		const [results, isDefinitions] = result;
-		if (!results.length || !state.validate(this.editor)) {
-			this.removeLinkDecorations();
-			return;
-		}
-
-		this.useAlternativeCommand = !isDefinitions;
 
 		const linkRange = results[0].originSelectionRange
 			? Range.lift(results[0].originSelectionRange)
@@ -185,9 +176,6 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 
 		// Multiple results
 		if (results.length > 1) {
-			const value = isDefinitions
-				? nls.localize('multipleResults', "Click to show {0} definitions.", results.length)
-				: nls.localize('multipleResults_refs', "Click to show {0} references.", results.length);
 
 			let combinedRange = linkRange;
 			for (const { originSelectionRange } of results) {
@@ -196,7 +184,10 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 				}
 			}
 
-			this.addDecoration(combinedRange, new MarkdownString().appendText(value));
+			this.addDecoration(
+				combinedRange,
+				new MarkdownString().appendText(nls.localize('multipleResults', "Click to show {0} definitions.", results.length))
+			);
 		} else {
 			// Single result
 			const result = results[0];
@@ -300,23 +291,13 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 			&& this.languageFeaturesService.definitionProvider.has(this.editor.getModel());
 	}
 
-	private findDefinitionOrReference(position: Position, token: CancellationToken): Promise<[LocationLink[], boolean] | null> {
+	private findDefinition(position: Position, token: CancellationToken): Promise<LocationLink[] | null> {
 		const model = this.editor.getModel();
 		if (!model) {
 			return Promise.resolve(null);
 		}
 
-		const definitionProvider = this.languageFeaturesService.definitionProvider;
-		const referenceProvider = this.languageFeaturesService.referenceProvider;
-		return getDefinitionsAtPosition(definitionProvider, model, position, token)
-			.then(result => {
-				if (!result.length) {
-					return getReferencesAtPosition(referenceProvider, model, position, false, token)
-						.then(references => [references, false]);
-				}
-
-				return [result, true];
-			});
+		return getDefinitionsAtPosition(this.languageFeaturesService.definitionProvider, model, position, token);
 	}
 
 	private gotoDefinition(position: Position, openToSide: boolean): Promise<any> {
@@ -324,13 +305,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 		return this.editor.invokeWithinContext((accessor) => {
 			const canPeek = !openToSide && this.editor.getOption(EditorOption.definitionLinkOpensInPeek) && !this.isInPeekEditor(accessor);
 			const action = new DefinitionAction({ openToSide, openInPeek: canPeek, muteMessage: true }, { title: { value: '', original: '' }, id: '', precondition: undefined });
-			if (this.useAlternativeCommand) {
-				const altActionId = this.editor.getOption(EditorOption.gotoLocation).alternativeDefinitionCommand;
-				const action = altActionId ? this.editor.getAction(altActionId) : null;
-				return action !== null ? action.run() : Promise.resolve();
-			} else {
-				return action.run(accessor, this.editor);
-			}
+			return action.run(accessor);
 		});
 	}
 
